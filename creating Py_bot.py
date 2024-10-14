@@ -1,5 +1,3 @@
-import os
-
 from telegram import Update
 from telegram import Updater, CommandHandler, CallbackContext
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update_Key_But
