@@ -1,12 +1,7 @@
 import json
 import os
-
-from curses.ascii import US
-from telegram import File, Update
-from telegram import Updater, CommandHandler, CallbackContext
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update_Key_But
-from telegram import Updater_Key_But, CommandHandler_Key_But, CallbackQueryHandler_Key_But, CallbackContext_Key_But
-
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, CallbackContext
 #from symbol import while_stmt
 
 #это читаем файл
@@ -51,14 +46,12 @@ def set_team(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
     username = update.message.from_user.username
 
-    if len(context.args) > 0: #проверям чтоб название команды не было пустое
+    if len(context.args) > 0:  # проверяем, чтобы название команды не было пустым
         team = ' '.join(context.args)
         update_user_data(user_id, username, team, wishes='Не указаны')
-    
-        update.message.user.reply_text(f'Команда {team} установлена')
+        update.message.reply_text(f'Команда {team} установлена')
     else:
-        update.message.reply_text("Пожалуйста, укажите команду после команды /setteam.") #если название команды пустое
-
+        update.message.reply_text("Пожалуйста, укажите команду после команды /setteam.")
 
 
 #Начнем с тебя! Скажи-ка мне, что в этом году придавало тебе больше всего сил? Желаешь ли ты чего-то? - запишем потом
@@ -77,6 +70,7 @@ def main():
     # Регистрируем обработчики команд
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help_command))
+    dispatcher.add_handler(CommandHandler("setteam", set_team))
 
     # Запуск бота
     updater.start_polling()
