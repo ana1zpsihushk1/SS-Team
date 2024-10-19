@@ -1,7 +1,7 @@
 import json
 import os
 from shlex import join
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, keyboardbutton
 from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
 
 # Это читаем файл
@@ -79,8 +79,14 @@ def create_team(update: Update, context: CallbackContext) -> None:
         data['teams'][team_name] = {'categories': [], 'members': []}  # Создаём новую команду в базе
         save_data('bazadannih.json', data)  # Сохраняем изменения
         update.message.reply_text("Команда создана. Теперь укажи ценовые категории.")
-
-
+#кнопки для ценновой категории
+def price_buttons(args):
+    keyboard = [
+        [InlineKeyboardButton("До 500 руб.", callback_data='price_500')],
+        [InlineKeyboardButton("500 - 1000 руб.", callback_data='price_500_1000')],
+        [InlineKeyboardButton("Больше 1000 руб.", callback_data='price_1000')]   
+    ]
+    return InlineKeyboardMarkup(keyboard)  # Возвращаем клавиатуру с кнопками
 
 
 def main():
