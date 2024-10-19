@@ -2,7 +2,7 @@
     "users": {
         "769269226": {
             "username": "hehefys",
-            "team": "Не указана",
+            "team": "qweqweqwe",
             "wishes": "Не указаны",
             "money_group": "bazadannih.json"
         }
@@ -17,6 +17,10 @@
             "members": []
         },
         "qq": {
+            "categories": [],
+            "members": []
+        },
+        "qweqweqwe": {
             "categories": [],
             "members": []
         }
