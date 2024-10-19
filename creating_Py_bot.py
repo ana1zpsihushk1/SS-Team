@@ -1,8 +1,7 @@
 import json
 import os
-from shlex import join
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, keyboardbutton
-from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, CallbackContext
 
 # Это читаем файл
 def load_data(filename):
@@ -88,21 +87,53 @@ def price_buttons(args):
     ]
     return InlineKeyboardMarkup(keyboard)  # Возвращаем клавиатуру с кнопками
 
+# Обработка выбора ценовой категории
+def price_selection(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query  # Получаем данные о нажатой кнопке
+    query.answer()
+
+    user_id = query.from_user.id  # Получаем ID пользователя
+    category = query.data  # Получаем выбранную категорию
+
+    data = load_data('bazadannih.json')  # Загружаем базу данных
+    team = context.user_data.get('team')  # Получаем команду пользователя
+
+    if team:
+        # Добавляем пользователя в команду с выбранной категорией
+        data['teams'][team]['members'].append({'user_id': user_id, 'category': category})
+        save_data('bazadannih.json', data)  # Сохраняем изменения
+        query.message.reply_text("Ты успешно присоединился к команде.")
+    else:
+        query.message.reply_text("Ошибка. Не удалось найти команду.")
+
+
+def write_whishes(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.from_user.id  # Получаем ID пользователя
+    wishes = update.message.text  # Получаем текст пожеланий
+
+    # Обновляем пожелания в базе данных
+    data = load_data('bazadannih.json')
+    data['users'][str(user_id)]['wishes'] = wishes
+    save_data('bazadannih.json', data)
+
+    update.message.reply_text("Твои пожелания записаны!")  # Подтверждаем пользователю
+
 
 def main():
     TOKEN = '7449709461:AAE1M2zp-Z_E6a_5yetifIzPqCH_E-Lb7tE'
 
     # Создаем объект Updater и передаем токен
-    updater = Updater(TOKEN)
+    updater = Updater(TOKEN, use_context=True)
 
     # Получаем диспетчер для регистрации обработчиков
     dispatcher = updater.dispatcher
 
-    # Регистрируем обработчики команд
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("help", help_command))
-    dispatcher.add_handler(CommandHandler("setteam", set_team))
-    dispatcher.add_handler(CallbackQueryHandler(button))  # Добавляем обработчик кнопок
+    # Регистрация обработчиков команд и сообщений
+    dispatcher.add_handler(CommandHandler("start", start))  # Обработчик для команды /start
+    dispatcher.add_handler(CallbackQueryHandler(team_selection, pattern='join_team|create_team'))  # Обработчик для кнопок
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, join_team))  # Обработчик для ввода названия команды
+    dispatcher.add_handler(CallbackQueryHandler(price_selection, pattern='price_500|price_500_1000|price_1000'))  # Обработчик для выбора категории
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_whishes))  # Обработчик для ввода пожеланий
 
     # Запуск бота
     updater.start_polling()
