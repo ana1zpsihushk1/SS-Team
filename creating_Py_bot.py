@@ -1,5 +1,6 @@
 import json
 import os
+from shlex import join
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
 
@@ -45,38 +46,15 @@ def start(update: Update, context: CallbackContext) -> None:
 
     update.message.reply_text("У тебя уже есть команда или ты хочешь создать свою?", reply_markup=reply_markup)
 
-    )
+#обработка выбора команды
+def team_selection(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query #получает данные о кнопке
+    query.answer #отвечаем на запрос
 
-def button(update: Update, context: CallbackContext) -> None:
-    query = update.callback_query
-    query.answer()
-
-    # Смотрим, какую кнопочку жмякнули
-    if query.data == 'set_team':
-        query.edit_message_text(text="Пожалуйста, укажи свою команду с помощью команды /setteam.")
-    elif query.data == 'set_wishes':
-        query.edit_message_text(text="Пожалуйста, укажи свои желания с помощью команды /setwishes.")
-    elif query.data == 'start_game':
-        query.edit_message_text(text="Игра начинается!")
-        # Здесь можно добавить логику игры
-    elif query.data == 'help':
-        query.edit_message_text(text="Я помогу тебе с чем смогу! Напиши /start, чтобы начать.")
-
-# Создаем функцию для определения команды
-def set_team(update: Update, context: CallbackContext) -> None:
-    user_id = update.message.from_user.id
-    username = update.message.from_user.username
-
-    if len(context.args) > 0:  # Проверяем, чтобы название команды не было пустым
-        team = ' '.join(context.args)
-        update_user_data(user_id, username, team, wishes='Не указаны')
-        update.message.reply_text(f'Команда {team} установлена')
-    else:
-        update.message.reply_text("Пожалуйста, укажите команду после команды /setteam.")
-
-# Функция для помощи
-def help_command(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text('Я помогу тебе с чем смогу! Напиши /start, чтобы начать.')
+    if query.data == "join_team": #хочет присоедениться команды
+        query.message.reply_text("Пожалуйста, укажи название команды.")
+    elif query.data == "create_team": # создает свою команду
+        query.message.reply_text("Придумай название для своей команды и задай ценовые категории.")
 
 def main():
     TOKEN = '7449709461:AAE1M2zp-Z_E6a_5yetifIzPqCH_E-Lb7tE'
