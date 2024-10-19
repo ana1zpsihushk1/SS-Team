@@ -17,12 +17,14 @@ def save_data(filename, data):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 # Функция для добавления в БД информации про новых пользователей
-def update_user_data(user_id, username, team, wishes, filename='bazadannih.json'):   
+def update_user_data(user_id, username, team, wishes, receiver, money_group, filename='bazadannih.json'):
     data = load_data(filename)  # Загружаем существующие данные
     data['users'][str(user_id)] = {  # Обновляем данные пользователя
         'username': username,
         'team': team,
         'wishes': wishes,
+        'receiver': receiver,
+        'money_group': money_group,
     }
     save_data(filename, data)  # Сохраняем изменения
 
