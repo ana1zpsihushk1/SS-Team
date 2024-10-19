@@ -22,10 +22,10 @@ def update_user_data (user_id, username, team, wishes, filename, money_group = "
     data = load_data(filename)
 
     data['users'][str(user_id)] = {
-        'username': username,
-        'team': team,
-        'wishes': wishes,
-        'money_group': money_group,
+        'username': username,   #№3
+        'team': team,           #№1
+        'wishes': wishes,       #№4
+        'money_group': money_group,         #№2
     }
 
     save_data(filename, data)
