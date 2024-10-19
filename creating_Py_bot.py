@@ -37,6 +37,8 @@ def update_user_data(user_id, username, team, wishes, filename='bazadannih.json'
 def start(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id  # Получаем ID пользователя
     username = update.message.from_user.username  # Получаем имя пользователя
+    context.user_data['username'] = username  # Сохраняем имя пользователя в user_data
+
     update_user_data(user_id, username, team='Не указана', wishes='Не указаны', filename='bazadannih.json')  # Обновляем базу данных пользователя
 
     update.message.reply_text(f"Приветствую тебя, {username}, Дорогой Санта! Я твой помощник - Вельф.")
@@ -89,6 +91,7 @@ def create_team(update: Update, context: CallbackContext) -> None:
     else:
         data['teams'][team_name] = {'categories': [], 'members': []}  # Создаем новую команду в базе
         save_data('bazadannih.json', data)  # Сохраняем изменения
+        # Здесь используется сохраненное имя пользователя
         update_user_data(update.message.from_user.id, context.user_data['username'], team=team_name, wishes='Не указаны')  # Обновляем данные пользователя
         update.message.reply_text("Команда создана. Теперь укажи ценовые категории.")  # Спрашиваем у пользователя о ценовых категориях
         context.user_data['team'] = team_name  # Сохраняем команду пользователя
@@ -121,7 +124,7 @@ def price_selection(update: Update, context: CallbackContext) -> None:
     else:
         query.message.reply_text("Ошибка. Не удалось найти команду.")
 
-def write_whishes(update: Update, context: CallbackContext) -> None:
+def write_whises(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id  # Получаем ID пользователя
     wishes = update.message.text  # Получаем текст пожеланий
 
@@ -146,7 +149,7 @@ def main():
     dispatcher.add_handler(CallbackQueryHandler(team_selection, pattern='join_team|create_team'))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, lambda update, context: join_team(update, context) if context.user_data.get('action') == 'join_team' else create_team(update, context)))
     dispatcher.add_handler(CallbackQueryHandler(price_selection, pattern='price_500|price_500_1000|price_1000'))
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_whishes))
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_whises))
 
     # Запуск бота
     updater.start_polling()

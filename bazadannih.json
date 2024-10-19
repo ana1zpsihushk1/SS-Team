@@ -6,5 +6,19 @@
             "wishes": "Не указаны",
             "money_group": "bazadannih.json"
         }
+    },
+    "teams": {
+        "qweqwwwww": {
+            "categories": [],
+            "members": []
+        },
+        "1000": {
+            "categories": [],
+            "members": []
+        },
+        "qq": {
+            "categories": [],
+            "members": []
+        }
     }
 }
