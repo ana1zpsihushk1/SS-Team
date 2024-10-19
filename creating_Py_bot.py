@@ -30,6 +30,8 @@ def update_user_data(user_id, username, team, wishes, filename='bazadannih.json'
 def start(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id  # Получаем ID пользователя
     username = update.message.from_user.username  # Получаем имя пользователя
+    context.user_data['username'] = username  # Сохраняем имя пользователя в контексте
+
     update_user_data(user_id, username, team='Не указана', wishes='Не указаны')  # Обновляем базу данных пользователя
 
     update.message.reply_text(f"Приветствую тебя, {username}, Дорогой Санта! Я твой помощник - Вельф.")
