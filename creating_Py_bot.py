@@ -9,7 +9,7 @@ def load_data(filename):
         with open(filename, 'r', encoding='utf-8') as f:
             return json.load(f)
     else:
-        return {"users": {}}  # Если что, возвращаем пустоту
+        return {"users": {}, "teams": {}}  # Если файла нет, создаём пустую базу данных для пользователей и команд
 
 # Это записываем файл
 def save_data(filename, data):
@@ -17,38 +17,34 @@ def save_data(filename, data):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 # Функция для добавления в БД информации про новых юзеров
-def update_user_data(user_id, username, team, wishes, filename="bazadannih.json"):
-    data = load_data(filename)
-
-    data['users'][str(user_id)] = {
+def update_user_data(user_id, username, team, wishes, filename, money_group="bazadannih.json"):
+    data = load_data(filename)  # Загружаем существующие данные
+    data['users'][str(user_id)] = {  # Обновляем данные пользователя
         'username': username,
         'team': team,
         'wishes': wishes,
+        'money_group': money_group,
     }
-
-    save_data(filename, data)
+    save_data(filename, data)  # Сохраняем изменения
 
 # Начальная функция
 def start(update: Update, context: CallbackContext) -> None:
-    user_id = update.message.from_user.id  # Получаем id пользователя
+    user_id = update.message.from_user.id  # Получаем ID пользователя
     username = update.message.from_user.username  # Получаем имя пользователя
+    update_user_data(user_id, username, team='Не указана', wishes='Не указаны')  # Обновляем базу данных пользователя
 
-    update_user_data(user_id, username, team='Не указана', wishes='Не указаны')
+    update.message.reply_text(f"Приветствую тебя, {username}, Дорогой Санта! Я твой помощник - Вельф.")
 
     # Кнопочки
     keyboard = [
-        [InlineKeyboardButton("Установить команду", callback_data='set_team')],
-        [InlineKeyboardButton("Установить желания", callback_data='set_wishes')],
-        [InlineKeyboardButton("Начать игру", callback_data='start_game')],
-        [InlineKeyboardButton("Помощь", callback_data='help')]
+        [InlineKeyboardButton("У меня есть команда", callback_data='join_team')],
+        [InlineKeyboardButton("Создать свою команду", callback_data='create_team')]
     ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)  # Инициализация reply_markup
 
-    # Сообщение с кнопками
-    update.message.reply_text(
-        f"Приветствую тебя {username}, Дорогой Санта! Я твой помощник - Вельф. Моя задача состоит в том, чтобы помочь тебе найти Санту, которому ты будешь дарить подарок, а также осчастливить тебя самого, работавшего весь год.", 
-        reply_markup=reply_markup
+    update.message.reply_text("У тебя уже есть команда или ты хочешь создать свою?", reply_markup=reply_markup)
+
     )
 
 def button(update: Update, context: CallbackContext) -> None:
