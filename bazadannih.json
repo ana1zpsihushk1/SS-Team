@@ -1,3 +1,10 @@
 {
-  "users": {}
+    "users": {
+        "769269226": {
+            "username": "hehefys",
+            "team": "Не указана",
+            "wishes": "Не указаны",
+            "money_group": "bazadannih.json"
+        }
+    }
 }

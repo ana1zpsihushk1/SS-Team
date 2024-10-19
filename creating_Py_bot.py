@@ -17,7 +17,7 @@ def save_data(filename, data):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 # Функция для добавления в БД информации про новых юзеров
-def update_user_data(user_id, username, team, wishes, filename, money_group="bazadannih.json"):
+def update_user_data(user_id, username, team, wishes, filename='bazadannih.json', money_group="bazadannih.json"):   
     data = load_data(filename)  # Загружаем существующие данные
     data['users'][str(user_id)] = {  # Обновляем данные пользователя
         'username': username,
@@ -31,7 +31,7 @@ def update_user_data(user_id, username, team, wishes, filename, money_group="baz
 def start(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id  # Получаем ID пользователя
     username = update.message.from_user.username  # Получаем имя пользователя
-    update_user_data(user_id, username, team='Не указана', wishes='Не указаны')  # Обновляем базу данных пользователя
+    update_user_data(user_id, username, team='Не указана', wishes='Не указаны', filename='bazadannih.json')  # Обновляем базу данных пользователя
 
     update.message.reply_text(f"Приветствую тебя, {username}, Дорогой Санта! Я твой помощник - Вельф.")
 
@@ -48,7 +48,7 @@ def start(update: Update, context: CallbackContext) -> None:
 #обработка выбора команды
 def team_selection(update: Update, context: CallbackContext) -> None:
     query = update.callback_query #получает данные о кнопке
-    query.answer #отвечаем на запрос
+    query.answer() #отвечаем на запрос
 
     if query.data == "join_team": #хочет присоедениться команды
         query.message.reply_text("Пожалуйста, укажи название команды.")
@@ -64,7 +64,7 @@ def join_team(update: Update, context: CallbackContext) -> None:
     data = load_data('bazadannih.json')  # Загружаем базу данных
     if team_name in data['teams']: #если уже существует такая команда
         context.user_data['team'] = team_name
-        update.message.reply_text("Теперь выбери свою ценовую категорию.", reply_markup=create_price_buttons())# Отправляем пользователю сообщение с выбором ценовой категории
+        update.message.reply_text("Теперь выбери свою ценовую категорию.", reply_markup=price_buttons())# Отправляем пользователю сообщение с выбором ценовой категории
     else:
         update.message.reply_text("Команда с таким именем не найдена.")  # Если команда не найдена
 
@@ -79,7 +79,7 @@ def create_team(update: Update, context: CallbackContext) -> None:
         save_data('bazadannih.json', data)  # Сохраняем изменения
         update.message.reply_text("Команда создана. Теперь укажи ценовые категории.")
 #кнопки для ценновой категории
-def price_buttons(args):
+def price_buttons():
     keyboard = [
         [InlineKeyboardButton("До 500 руб.", callback_data='price_500')],
         [InlineKeyboardButton("500 - 1000 руб.", callback_data='price_500_1000')],
@@ -129,11 +129,11 @@ def main():
     dispatcher = updater.dispatcher
 
     # Регистрация обработчиков команд и сообщений
-    dispatcher.add_handler(CommandHandler("start", start))  # Обработчик для команды /start
-    dispatcher.add_handler(CallbackQueryHandler(team_selection, pattern='join_team|create_team'))  # Обработчик для кнопок
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, join_team))  # Обработчик для ввода названия команды
-    dispatcher.add_handler(CallbackQueryHandler(price_selection, pattern='price_500|price_500_1000|price_1000'))  # Обработчик для выбора категории
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_whishes))  # Обработчик для ввода пожеланий
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CallbackQueryHandler(team_selection, pattern='join_team|create_team'))
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, join_team))
+    dispatcher.add_handler(CallbackQueryHandler(price_selection, pattern='price_500|price_500_1000|price_1000'))
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_whishes))
 
     # Запуск бота
     updater.start_polling()
