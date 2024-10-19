@@ -3,20 +3,20 @@ import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, CallbackContext
 
-# Это читаем файл
+# Чтение файла
 def load_data(filename):
     if os.path.exists(filename):
         with open(filename, 'r', encoding='utf-8') as f:
             return json.load(f)
     else:
-        return {"users": {}, "teams": {}}  # Если файла нет, создаём пустую базу данных для пользователей и команд
+        return {"users": {}, "teams": {}}  # Если файла нет, создаем пустую базу данных для пользователей и команд
 
-# Это записываем файл
+# Запись файла
 def save_data(filename, data):
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-# Функция для добавления в БД информации про новых юзеров
+# Обновление данных пользователя
 def update_user_data(user_id, username, team, wishes, filename='bazadannih.json', money_group="bazadannih.json"):   
     data = load_data(filename)  # Загружаем существующие данные
     data['users'][str(user_id)] = {  # Обновляем данные пользователя
@@ -33,7 +33,7 @@ def start(update: Update, context: CallbackContext) -> None:
     username = update.message.from_user.username  # Получаем имя пользователя
     update_user_data(user_id, username, team='Не указана', wishes='Не указаны', filename='bazadannih.json')  # Обновляем базу данных пользователя
 
-    update.message.reply_text(f"Приветствую тебя, {username}, Дорогой Санта! Я твой помощник - Вельф.")
+    update.message.reply_text(f"Приветствую тебя, {username}, Дорогой Санта!")
 
     # Кнопочки
     keyboard = [
@@ -45,40 +45,48 @@ def start(update: Update, context: CallbackContext) -> None:
 
     update.message.reply_text("У тебя уже есть команда или ты хочешь создать свою?", reply_markup=reply_markup)
 
-#обработка выбора команды
+# Обработка выбора команды
 def team_selection(update: Update, context: CallbackContext) -> None:
-    query = update.callback_query #получает данные о кнопке
-    query.answer() #отвечаем на запрос
+    query = update.callback_query  # Получаем данные о кнопке
+    query.answer()  # Отвечаем на запрос
 
-    if query.data == "join_team": #хочет присоедениться команды
+    if query.data == "join_team":  # Пользователь хочет присоединиться к команде
         query.message.reply_text("Пожалуйста, укажи название команды.")
-    elif query.data == "create_team": # создает свою команду
+        context.user_data['action'] = 'join_team'  # Сохраняем действие в пользовательских данных
+    elif query.data == "create_team":  # Пользователь хочет создать свою команду
         query.message.reply_text("Придумай название для своей команды и задай ценовые категории.")
+        context.user_data['action'] = 'create_team'  # Сохраняем действие в пользовательских данных
 
-
-#присоединяемся к команде
+# Присоединение к команде
 def join_team(update: Update, context: CallbackContext) -> None:
-    user_id = update.message.from_user.id #получаем id
+    user_id = update.message.from_user.id  # Получаем ID пользователя
     team_name = update.message.text.strip()  # Получаем название команды
 
     data = load_data('bazadannih.json')  # Загружаем базу данных
-    if team_name in data['teams']: #если уже существует такая команда
+    if team_name in data['teams']:  # Если команда существует
         context.user_data['team'] = team_name
-        update.message.reply_text("Теперь выбери свою ценовую категорию.", reply_markup=price_buttons())# Отправляем пользователю сообщение с выбором ценовой категории
+        update_user_data(user_id, context.user_data['username'], team=team_name, wishes='Не указаны')  # Обновляем данные пользователя
+        update.message.reply_text("Теперь выбери свою ценовую категорию.", reply_markup=price_buttons())  # Отправляем выбор ценовой категории
     else:
         update.message.reply_text("Команда с таким именем не найдена.")  # Если команда не найдена
 
-#создаем команду
+# Создание команды
 def create_team(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.from_user.id  # Получаем ID пользователя
     team_name = update.message.text.strip()  # Получаем название команды
     data = load_data('bazadannih.json')  # Загружаем базу данных
+
     if team_name in data['teams']:  # Если команда с таким названием уже существует
         update.message.reply_text("Команда с таким именем уже существует, выбери другое.")
     else:
-        data['teams'][team_name] = {'categories': [], 'members': []}  # Создаём новую команду в базе
+        data['teams'][team_name] = {'categories': [], 'members': []}  # Создаем новую команду в базе
         save_data('bazadannih.json', data)  # Сохраняем изменения
+        update_user_data(user_id, context.user_data['username'], team=team_name, wishes='Не указаны')  # Обновляем данные пользователя
         update.message.reply_text("Команда создана. Теперь укажи ценовые категории.")
-#кнопки для ценновой категории
+        context.user_data['team'] = team_name  # Сохраняем команду пользователя
+        context.user_data['action'] = 'set_price_category'  # Указываем действие
+
+# Кнопки для ценовой категории
 def price_buttons():
     keyboard = [
         [InlineKeyboardButton("До 500 руб.", callback_data='price_500')],
@@ -106,7 +114,7 @@ def price_selection(update: Update, context: CallbackContext) -> None:
     else:
         query.message.reply_text("Ошибка. Не удалось найти команду.")
 
-
+# Запись пожеланий
 def write_whishes(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id  # Получаем ID пользователя
     wishes = update.message.text  # Получаем текст пожеланий
@@ -117,7 +125,6 @@ def write_whishes(update: Update, context: CallbackContext) -> None:
     save_data('bazadannih.json', data)
 
     update.message.reply_text("Твои пожелания записаны!")  # Подтверждаем пользователю
-
 
 def main():
     TOKEN = '7449709461:AAE1M2zp-Z_E6a_5yetifIzPqCH_E-Lb7tE'
@@ -131,7 +138,7 @@ def main():
     # Регистрация обработчиков команд и сообщений
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CallbackQueryHandler(team_selection, pattern='join_team|create_team'))
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, join_team))
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, lambda update, context: join_team(update, context) if context.user_data.get('action') == 'join_team' else create_team(update, context)))
     dispatcher.add_handler(CallbackQueryHandler(price_selection, pattern='price_500|price_500_1000|price_1000'))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_whishes))
 
