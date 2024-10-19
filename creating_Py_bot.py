@@ -56,6 +56,33 @@ def team_selection(update: Update, context: CallbackContext) -> None:
     elif query.data == "create_team": # создает свою команду
         query.message.reply_text("Придумай название для своей команды и задай ценовые категории.")
 
+
+#присоединяемся к команде
+def join_team(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.from_user.id #получаем id
+    team_name = update.message.text.strip()  # Получаем название команды
+
+    data = load_data('bazadannih.json')  # Загружаем базу данных
+    if team_name in data['teams']: #если уже существует такая команда
+        context.user_data['team'] = team_name
+        update.message.reply_text("Теперь выбери свою ценовую категорию.", reply_markup=create_price_buttons())# Отправляем пользователю сообщение с выбором ценовой категории
+    else:
+        update.message.reply_text("Команда с таким именем не найдена.")  # Если команда не найдена
+
+#создаем команду
+def create_team(update: Update, context: CallbackContext) -> None:
+    team_name = update.message.text.strip()  # Получаем название команды
+    data = load_data('bazadannih.json')  # Загружаем базу данных
+    if team_name in data['teams']:  # Если команда с таким названием уже существует
+        update.message.reply_text("Команда с таким именем уже существует, выбери другое.")
+    else:
+        data['teams'][team_name] = {'categories': [], 'members': []}  # Создаём новую команду в базе
+        save_data('bazadannih.json', data)  # Сохраняем изменения
+        update.message.reply_text("Команда создана. Теперь укажи ценовые категории.")
+
+
+
+
 def main():
     TOKEN = '7449709461:AAE1M2zp-Z_E6a_5yetifIzPqCH_E-Lb7tE'
 
