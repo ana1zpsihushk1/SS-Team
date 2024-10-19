@@ -3,20 +3,26 @@ import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, CallbackContext
 
-# Чтение файла
+# Это читаем файл
 def load_data(filename):
     if os.path.exists(filename):
         with open(filename, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            data = json.load(f)
+            # Проверяем, есть ли нужные ключи
+            if 'users' not in data:
+                data['users'] = {}
+            if 'teams' not in data:
+                data['teams'] = {}
+            return data
     else:
-        return {"users": {}, "teams": {}}  # Если файла нет, создаем пустую базу данных для пользователей и команд
+        return {"users": {}, "teams": {}}  # Если файла нет, создаём пустую базу данных для пользователей и команд
 
-# Запись файла
+# Это записываем файл
 def save_data(filename, data):
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-# Обновление данных пользователя
+# Функция для добавления в БД информации про новых юзеров
 def update_user_data(user_id, username, team, wishes, filename='bazadannih.json', money_group="bazadannih.json"):   
     data = load_data(filename)  # Загружаем существующие данные
     data['users'][str(user_id)] = {  # Обновляем данные пользователя
@@ -33,7 +39,7 @@ def start(update: Update, context: CallbackContext) -> None:
     username = update.message.from_user.username  # Получаем имя пользователя
     update_user_data(user_id, username, team='Не указана', wishes='Не указаны', filename='bazadannih.json')  # Обновляем базу данных пользователя
 
-    update.message.reply_text(f"Приветствую тебя, {username}, Дорогой Санта!")
+    update.message.reply_text(f"Приветствую тебя, {username}, Дорогой Санта! Я твой помощник - Вельф.")
 
     # Кнопочки
     keyboard = [
@@ -47,44 +53,45 @@ def start(update: Update, context: CallbackContext) -> None:
 
 # Обработка выбора команды
 def team_selection(update: Update, context: CallbackContext) -> None:
-    query = update.callback_query  # Получаем данные о кнопке
-    query.answer()  # Отвечаем на запрос
+    query = update.callback_query  # получает данные о кнопке
+    query.answer()  # отвечаем на запрос
 
-    if query.data == "join_team":  # Пользователь хочет присоединиться к команде
+    if query.data == "join_team":  # хочет присоединиться к команде
         query.message.reply_text("Пожалуйста, укажи название команды.")
-        context.user_data['action'] = 'join_team'  # Сохраняем действие в пользовательских данных
-    elif query.data == "create_team":  # Пользователь хочет создать свою команду
+        context.user_data['action'] = 'join_team'  # Запоминаем действие
+    elif query.data == "create_team":  # создает свою команду
         query.message.reply_text("Придумай название для своей команды и задай ценовые категории.")
-        context.user_data['action'] = 'create_team'  # Сохраняем действие в пользовательских данных
+        context.user_data['action'] = 'create_team'  # Запоминаем действие
 
-# Присоединение к команде
+# Присоединяемся к команде
 def join_team(update: Update, context: CallbackContext) -> None:
-    user_id = update.message.from_user.id  # Получаем ID пользователя
+    user_id = update.message.from_user.id  # получаем id
     team_name = update.message.text.strip()  # Получаем название команды
 
     data = load_data('bazadannih.json')  # Загружаем базу данных
-    if team_name in data['teams']:  # Если команда существует
+    if team_name in data['teams']:  # если уже существует такая команда
         context.user_data['team'] = team_name
-        update_user_data(user_id, context.user_data['username'], team=team_name, wishes='Не указаны')  # Обновляем данные пользователя
-        update.message.reply_text("Теперь выбери свою ценовую категорию.", reply_markup=price_buttons())  # Отправляем выбор ценовой категории
+        update.message.reply_text("Теперь выбери свою ценовую категорию.", reply_markup=price_buttons())  # Отправляем пользователю сообщение с выбором ценовой категории
     else:
         update.message.reply_text("Команда с таким именем не найдена.")  # Если команда не найдена
 
-# Создание команды
+# Создаем команду
 def create_team(update: Update, context: CallbackContext) -> None:
-    user_id = update.message.from_user.id  # Получаем ID пользователя
     team_name = update.message.text.strip()  # Получаем название команды
     data = load_data('bazadannih.json')  # Загружаем базу данных
+
+    # Убедитесь, что 'teams' существует в данных
+    if 'teams' not in data:
+        data['teams'] = {}
 
     if team_name in data['teams']:  # Если команда с таким названием уже существует
         update.message.reply_text("Команда с таким именем уже существует, выбери другое.")
     else:
         data['teams'][team_name] = {'categories': [], 'members': []}  # Создаем новую команду в базе
         save_data('bazadannih.json', data)  # Сохраняем изменения
-        update_user_data(user_id, context.user_data['username'], team=team_name, wishes='Не указаны')  # Обновляем данные пользователя
-        update.message.reply_text("Команда создана. Теперь укажи ценовые категории.")
+        update_user_data(update.message.from_user.id, context.user_data['username'], team=team_name, wishes='Не указаны')  # Обновляем данные пользователя
+        update.message.reply_text("Команда создана. Теперь укажи ценовые категории.")  # Спрашиваем у пользователя о ценовых категориях
         context.user_data['team'] = team_name  # Сохраняем команду пользователя
-        context.user_data['action'] = 'set_price_category'  # Указываем действие
 
 # Кнопки для ценовой категории
 def price_buttons():
@@ -114,7 +121,6 @@ def price_selection(update: Update, context: CallbackContext) -> None:
     else:
         query.message.reply_text("Ошибка. Не удалось найти команду.")
 
-# Запись пожеланий
 def write_whishes(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id  # Получаем ID пользователя
     wishes = update.message.text  # Получаем текст пожеланий
