@@ -2,6 +2,7 @@ import json
 import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, CallbackContext
+import random
 
 # Читаем файл
 def load_data(filename):
@@ -36,7 +37,7 @@ def start(update: Update, context: CallbackContext) -> None:
 
     update_user_data(user_id, username, team='Не указана', wishes='Не указаны')  # Обновляем базу данных пользователя
 
-    update.message.reply_text(f"Приветствую тебя, {username}, Дорогой Санта! Я твой помощник - Вельф.")
+    update.message.reply_text(f"Приветствую тебя, {username}, Дорогой Санта! Я твой помощник - Вельф. Моя задача состоит в том, чтобы помочь тебе найти Санту, которому ты будешь дарить подарок, а также осчастливить тебя самого, работавшего весь год.")
 
     # Кнопочки
     keyboard = [
@@ -57,7 +58,7 @@ def team_selection(update: Update, context: CallbackContext) -> None:
         query.message.reply_text("Пожалуйста, укажи название команды.")
         context.user_data['action'] = 'join_team'  # Сохраняем действие
     elif query.data == "create_team":  # Создает свою команду
-        query.message.reply_text("Придумай название для своей команды и задай ценовые категории.")
+        query.message.reply_text("Придумай название для своей команды")
         context.user_data['action'] = 'create_team'  # Сохраняем действие
 
 # Присоединяемся к команде
@@ -133,6 +134,39 @@ def write_whishes(update: Update, context: CallbackContext) -> None:
     save_data('bazadannih.json', data)
 
     update.message.reply_text("Твои пожелания записаны!")  # Подтверждаем пользователю
+
+
+def distribute(update, context): #Порыв творческого мракобесия1, требует проверки!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    if len(data['teams'][team_name]) < 2:
+        update.message.reply_text("Недостаточно участников для игры.")
+        return
+
+    # Получаем распределение участников (кто кому дарит)
+    assignment = secret_santa(data['teams'][team_name])
+
+    # Отправляем каждому личное сообщение о том, кому он дарит подарок
+    for giver, receiver in assignment.items():
+        # Находим пользователя по имени дарителя
+        # Здесь предполагается, что у нас есть доступ к объекту chat_id или идентификатору пользователя
+        context.bot.send_message(chat_id=update.message.chat_id,
+                                 text=f"{giver}, вы дарите подарок {receiver}.")
+        context.bot.send_message(chat_id=update.message.chat_id,
+                                 text=f"{receiver} хочет получить {data['users'][user]['wishes']}.")
+    update.message.reply_text("Распределение завершено!")
+
+
+def secret_santa(data['teams'][team_name]): #Порыв творческого мракобесия2, требует проверки!!!!!!!!!!!!!!!!!!!!!!!!
+    givers = data['teams'][team_name].copy()
+    receivers = data['teams'][team_name].copy()
+
+    random.shuffle(receivers)
+
+    # Перемешиваем получателей, чтобы никто не дарил самому себе
+    while any(g == r for g, r in zip(givers, receivers)):
+        random.shuffle(receivers)
+
+    return dict(zip(givers, receivers))
+
 
 def main():
     TOKEN = '7449709461:AAE1M2zp-Z_E6a_5yetifIzPqCH_E-Lb7tE'
