@@ -136,27 +136,32 @@ def price_selection(update: Update, context: CallbackContext) -> None:
     else:
         query.message.reply_text("Только создатель команды может установить ценовую категорию.")
 
-# Функция для написания пожеланий
+
 # Обработка текстовых сообщений
 def write_wishes(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
-    wishes = update.message.text.strip()
+    user_action = context.user_data.get('action')  # Проверяем текущее действие пользователя
 
-    # Убедимся, что пожелания адекватны
-    if len(wishes) < 10:
-        update.message.reply_text("Твоему Тайному Санте хочется знать, что бы ты хотел получить на Новый год? Пожалуйста, напиши свои пожелания и предпочтения!")
-        return
-
-    # Обновляем пожелания в базе данных
-    data = load_data('bazadannih.json')
-    data['users'][str(user_id)]['wishes'] = wishes
-    save_data('bazadannih.json', data)
-
-    update.message.reply_text("Твои пожелания записаны! Теперь подожди, когда создатель команды запустит рандомизацию.")
-    show_action_buttons(update.message.chat_id)
+    if user_action == 'create_team':  # Если пользователь создаёт команду
+        team_name = update.message.text.strip()
+        create_team(update, context, team_name)  # Вызываем функцию для создания команды
+    elif user_action == 'join_team':  # Если пользователь присоединяется к команде
+        team_name = update.message.text.strip()
+        join_team(update, context, team_name)  # Вызываем функцию для присоединения к команде
+    elif user_action == 'write_wishes':  # Если пользователь пишет пожелания
+        wishes = update.message.text.strip()
+        if len(wishes) < 10:
+            update.message.reply_text("Пожалуйста, напишите более развернутые пожелания. Например: 'Мне очень не хватало теплых носков в этот холодный февраль'.")
+            return
+        data = load_data('bazadannih.json')
+        data['users'][str(user_id)]['wishes'] = wishes
+        save_data('bazadannih.json', data)
+        update.message.reply_text("Твои пожелания записаны! Теперь подожди, когда создатель команды запустит рандомизацию.")
+        show_action_buttons(update.message.chat_id)
 
     # После ввода текста, сбрасываем действие
     context.user_data['action'] = None
+
 
 
 # Функция для отображения кнопок действия
