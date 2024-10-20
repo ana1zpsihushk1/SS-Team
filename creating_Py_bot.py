@@ -68,23 +68,35 @@ def team_selection(update: Update, context: CallbackContext) -> None:
                                   "Пожалуйста, пишите пожелания и ценовые категории. После этого руководитель команды запустит рандомизацию подарков!")
 
 # Присоединение к команде
-def join_team(update: Update, context: CallbackContext) -> None:
+def join_team(update: Update, context: CallbackContext, team_name: str) -> None:
     user_id = update.message.from_user.id
+    username = update.message.from_user.username
     team_name = update.message.text.strip()
 
     data = load_data('bazadannih.json')
 
+    # Проверяем, не состоит ли пользователь уже в другой команде
     if str(user_id) in data['users'] and data['users'][str(user_id)]['team'] != 'Не указана':
         update.message.reply_text("Ты уже состоишь в команде и не можешь присоединиться к другой.")
         return
 
+    # Проверяем, существует ли команда
     if team_name in data['teams']:
+        # Добавляем пользователя в команду
         context.user_data['team'] = team_name
         update.message.reply_text("Теперь выбери свою ценовую категорию.", reply_markup=price_buttons())
+        
+        # Обновляем список участников команды
         data['teams'][team_name]['members'].append(user_id)
+
+        # Обновляем данные пользователя в базе данных
+        update_user_data(user_id, username, team=team_name, wishes='Не указаны', receiver='Не назначен', money_group='Не указана', filename='bazadannih.json')
+
+        # Сохраняем обновленные данные
         save_data('bazadannih.json', data)
     else:
         update.message.reply_text("Команда с таким именем не найдена.")
+
 
 # Создание команды
 def create_team(update: Update, context: CallbackContext, team_name: str) -> None:
