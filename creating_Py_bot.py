@@ -1,3 +1,4 @@
+from enum import member
 import json
 import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -137,21 +138,28 @@ def write_whishes(update: Update, context: CallbackContext) -> None:
 
 
 def distribute(update, context): #Порыв творческого мракобесия1, требует проверки!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    if len(data['teams'][team_name]) < 2:
+    data = load_data('bazadannih.json')  # Загружаем базу данных
+    team_name = context.user_data.get('team')  # Получаем название команды из данных пользователя
+
+    if team_name not in data['teams'] or len(data['teams'][team_name]['members']) < 2:
         update.message.reply_text("Недостаточно участников для игры.")
         return
 
     # Получаем распределение участников (кто кому дарит)
-    assignment = secret_santa(data['teams'][team_name])
+    assignment = secret_santa(data['teams'][team_name]['members'])
 
     # Отправляем каждому личное сообщение о том, кому он дарит подарок
-    for giver, receiver in assignment.items():
-        # Находим пользователя по имени дарителя
-        # Здесь предполагается, что у нас есть доступ к объекту chat_id или идентификатору пользователя
-        context.bot.send_message(chat_id=update.message.chat_id,
-                                 text=f"{giver}, вы дарите подарок {receiver}.")
-        context.bot.send_message(chat_id=update.message.chat_id,
-                                 text=f"{receiver} хочет получить {data['users'][user]['wishes']}.")
+    for giver_info, receiver_info in assignment.items():
+        giver_id = giver_info['user_id']  # ID дарителя
+        receiver_id = receiver_info['user_id']  # ID получателя
+        receiver_wishes = data['users'][str(receiver_id)]['wishes']  # Желания получателя
+
+
+        context.bot.send_message(chat_id=giver_id,
+                                 text=f"Вы дарите подарок {receiver_info['username']}.")
+        context.bot.send_message(chat_id=giver_id,
+                                 text=f"{receiver_info['username']} хочет получить: {receiver_wishes}.")
+
     update.message.reply_text("Распределение завершено!")
 
 
