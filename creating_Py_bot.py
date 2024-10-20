@@ -18,7 +18,7 @@ def save_data(filename, data):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 # Функция для добавления в БД информации про новых пользователей
-def update_user_data(user_id, username, team, wishes, receiver, money_group, filename='bazadannih.json'):
+def update_user_data(user_id, username, team, wishes, receiver, filename='bazadannih.json'):
     data = load_data(filename)
     if str(user_id) not in data['users']:
         data['users'][str(user_id)] = {
@@ -26,7 +26,6 @@ def update_user_data(user_id, username, team, wishes, receiver, money_group, fil
             'team': team,
             'wishes': wishes,
             'receiver': receiver,
-            'money_group': money_group,
         }
     save_data(filename, data)
 
@@ -122,31 +121,31 @@ def create_team(update: Update, context: CallbackContext, team_name: str) -> Non
     context.user_data['team'] = team_name
 
 # Кнопки для ценовой категории
-def price_buttons():
-    keyboard = [
-        [InlineKeyboardButton("До 500 руб.", callback_data='price_500')],
-        [InlineKeyboardButton("500 - 1000 руб.", callback_data='price_500_1000')],
-        [InlineKeyboardButton("Больше 1000 руб.", callback_data='price_1000')]
-    ]
-    return InlineKeyboardMarkup(keyboard)
+#def price_buttons():
+ #   keyboard = [
+  #      [InlineKeyboardButton("До 500 руб.", callback_data='price_500')],
+   #     [InlineKeyboardButton("500 - 1000 руб.", callback_data='price_500_1000')],
+    #    [InlineKeyboardButton("Больше 1000 руб.", callback_data='price_1000')]
+   # ]
+    #return InlineKeyboardMarkup(keyboard)
 
 # Обработка выбора ценовой категории
-def price_selection(update: Update, context: CallbackContext) -> None:
-    query = update.callback_query
-    query.answer()
-
-    user_id = query.from_user.id
-    category = query.data
-    team = context.user_data.get('team')
-
-    data = load_data('bazadannih.json')
-
-    if team and data['teams'][team]['creator'] == user_id:
-        data['teams'][team]['categories'].append(category)
-        save_data('bazadannih.json', data)
-        query.message.reply_text(f"Ценовая категория '{category}' установлена.")
-    else:
-        query.message.reply_text("Только создатель команды может установить ценовую категорию.")
+#def price_selection(update: Update, context: CallbackContext) -> None:
+ #   query = update.callback_query
+  #  query.answer()
+  #
+    #user_id = query.from_user.id
+   # category = query.data
+   # team = context.user_data.get('team')
+#
+ #  data = load_data('bazadannih.json')
+ #
+   # if team and data['teams'][team]['creator'] == user_id:
+    #    data['teams'][team]['categories'].append(category)
+     #   save_data('bazadannih.json', data)
+      #  query.message.reply_text(f"Ценовая категория '{category}' установлена.")
+    #else:
+     #   query.message.reply_text("Только создатель команды может установить ценовую категорию.")
 
 
 # Обработка текстовых сообщений
@@ -235,7 +234,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CallbackQueryHandler(team_selection))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_wishes))
-    dispatcher.add_handler(CallbackQueryHandler(price_selection, pattern='^price_.*$'))
+   # dispatcher.add_handler(CallbackQueryHandler(price_selection, pattern='^price_.*$'))
     dispatcher.add_handler(CallbackQueryHandler(distribute, pattern='^distribute$'))
 
     updater.start_polling()
