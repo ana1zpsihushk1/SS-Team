@@ -139,6 +139,7 @@ def price_selection(update: Update, context: CallbackContext) -> None:
 # Функция для написания пожеланий
 def write_wishes(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
+    update.message.reply_text("Твоему Тайному Санте хочется знать, что бы ты хотел получить на Новый год? Пожалуйста, напиши свои пожелания и предпочтения!")
     wishes = update.message.text.strip()
 
     # Убедимся, что пожелания адекватны
