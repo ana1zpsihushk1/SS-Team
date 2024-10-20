@@ -1,4 +1,3 @@
-from enum import member
 import json
 import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -21,13 +20,14 @@ def save_data(filename, data):
 # Функция для добавления в БД информации про новых пользователей
 def update_user_data(user_id, username, team, wishes, receiver, money_group, filename='bazadannih.json'):
     data = load_data(filename)  # Загружаем существующие данные
-    data['users'][str(user_id)] = {  # Обновляем данные пользователя
-        'username': username,
-        'team': team,
-        'wishes': wishes,
-        'receiver': receiver,
-        'money_group': money_group,
-    }
+    if str(user_id) not in data['users']:  # Если пользователь новый
+        data['users'][str(user_id)] = {  # Обновляем данные пользователя
+            'username': username,
+            'team': team,
+            'wishes': wishes,
+            'receiver': receiver,
+            'money_group': money_group,
+        }
     save_data(filename, data)  # Сохраняем изменения
 
 # Начальная функция
@@ -36,7 +36,7 @@ def start(update: Update, context: CallbackContext) -> None:
     username = update.message.from_user.username  # Получаем имя пользователя
     context.user_data['username'] = username  # Сохраняем имя пользователя в контексте
 
-    update_user_data(user_id, username, team='Не указана', wishes='Не указаны')  # Обновляем базу данных пользователя
+    update_user_data(user_id, username, team='Не указана', wishes='Не указаны', receiver='Не назначен', money_group='Не указана')  # Обновляем базу данных пользователя
 
     update.message.reply_text(f"Приветствую тебя, {username}, Дорогой Санта! Я твой помощник - Вельф. Моя задача состоит в том, чтобы помочь тебе найти Санту, которому ты будешь дарить подарок, а также осчастливить тебя самого, работавшего весь год.")
 
@@ -62,37 +62,47 @@ def team_selection(update: Update, context: CallbackContext) -> None:
         query.message.reply_text("Придумай название для своей команды")
         context.user_data['action'] = 'create_team'  # Сохраняем действие
 
-# Присоединяемся к команде
+# Присоединение к команде с проверкой
 def join_team(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id  # Получаем ID пользователя
     team_name = update.message.text.strip()  # Получаем название команды
 
     data = load_data('bazadannih.json')  # Загружаем базу данных
-    if team_name in data['teams']:  # Если уже существует такая команда
+
+    if str(user_id) in data['users'] and data['users'][str(user_id)]['team'] != 'Не указана':
+        update.message.reply_text("Ты уже состоишь в команде и не можешь присоединиться к другой.")
+        return  # Выходим из функции, если пользователь уже состоит в команде
+
+    if team_name in data['teams']:  # Если команда найдена
         context.user_data['team'] = team_name
         update.message.reply_text("Теперь выбери свою ценовую категорию.", reply_markup=price_buttons())  # Отправляем пользователю сообщение с выбором ценовой категории
+        data['teams'][team_name]['members'].append(user_id)  # Добавляем пользователя в команду
+        save_data('bazadannih.json', data)  # Сохраняем изменения
     else:
         update.message.reply_text("Команда с таким именем не найдена.")  # Если команда не найдена
 
-# Создаем команду
+# Создание команды и назначение создателя
 def create_team(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.from_user.id  # Получаем ID пользователя
     team_name = update.message.text.strip()  # Получаем название команды
     data = load_data('bazadannih.json')  # Загружаем базу данных
 
-    # Убедитесь, что 'teams' существует в данных
     if 'teams' not in data:
         data['teams'] = {}
 
     if team_name in data['teams']:  # Если команда с таким названием уже существует
         update.message.reply_text("Команда с таким именем уже существует, выбери другое.")
     else:
-        data['teams'][team_name] = {'categories': [], 'members': []}  # Создаем новую команду в базе
+        data['teams'][team_name] = {
+            'categories': [],
+            'members': [user_id],  # Добавляем создателя как первого члена
+            'creator': user_id  # Назначаем создателя команды
+        }
         save_data('bazadannih.json', data)  # Сохраняем изменения
         
         # Обновляем данные пользователя
-        update_user_data(update.message.from_user.id, context.user_data['username'], team=team_name, wishes='Не указаны')  # Обновляем данные пользователя
+        update_user_data(user_id, context.user_data['username'], team=team_name, wishes='Не указаны', receiver='Не назначен', money_group='Не указана')  # Обновляем данные пользователя
         
-        # Показываем клавиатуру с кнопками
         update.message.reply_text("Команда создана. Теперь укажи ценовые категории.", reply_markup=price_buttons())  
         context.user_data['team'] = team_name  # Сохраняем команду пользователя
 
@@ -105,24 +115,23 @@ def price_buttons():
     ]
     return InlineKeyboardMarkup(keyboard)  # Возвращаем клавиатуру с кнопками
 
-# Обработка выбора ценовой категории
+# Обработка выбора ценовой категории только для создателя
 def price_selection(update: Update, context: CallbackContext) -> None:
     query = update.callback_query  # Получаем данные о нажатой кнопке
     query.answer()
 
     user_id = query.from_user.id  # Получаем ID пользователя
     category = query.data  # Получаем выбранную категорию
-
-    data = load_data('bazadannih.json')  # Загружаем базу данных
     team = context.user_data.get('team')  # Получаем команду пользователя
 
-    if team:
-        # Добавляем пользователя в команду с выбранной категорией
-        data['teams'][team]['members'].append({'user_id': user_id, 'category': category})
+    data = load_data('bazadannih.json')  # Загружаем базу данных
+
+    if team and data['teams'][team]['creator'] == user_id:  # Проверяем, является ли пользователь создателем команды
+        data['teams'][team]['categories'].append(category)  # Добавляем ценовую категорию в команду
         save_data('bazadannih.json', data)  # Сохраняем изменения
-        query.message.reply_text("Ты успешно присоединился к команде.")
+        query.message.reply_text(f"Ценовая категория '{category}' установлена.")
     else:
-        query.message.reply_text("Ошибка. Не удалось найти команду.")
+        query.message.reply_text("Только создатель команды может установить ценовую категорию.")
 
 # Пишем пожелания
 def write_whishes(update: Update, context: CallbackContext) -> None:
@@ -136,8 +145,8 @@ def write_whishes(update: Update, context: CallbackContext) -> None:
 
     update.message.reply_text("Твои пожелания записаны!")  # Подтверждаем пользователю
 
-
-def distribute(update, context): #Порыв творческого мракобесия1, требует проверки!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# Функция распределения подарков
+def distribute(update, context):
     data = load_data('bazadannih.json')  # Загружаем базу данных
     team_name = context.user_data.get('team')  # Получаем название команды из данных пользователя
 
@@ -155,12 +164,9 @@ def distribute(update, context): #Порыв творческого мракоб
         receiver_wishes = data['users'][str(receiver_id)]['wishes']  # Желания получателя
 
         context.bot.send_message(chat_id=giver_id,
-                                 text=f"Вы дарите подарок {receiver_info['username']}.")
-        context.bot.send_message(chat_id=giver_id,
-                                 text=f"{receiver_info['username']} хочет получить: {receiver_wishes}.")
+                                 text=f"Вы дарите подарок {receiver_info['username']}. Его пожелания: {receiver_wishes}")
 
     update.message.reply_text("Распределение завершено!")
-
 
 def secret_santa(members):
     givers = members.copy()
@@ -173,7 +179,6 @@ def secret_santa(members):
         random.shuffle(receivers)
 
     return dict(zip(givers, receivers))
-
 
 def main():
     TOKEN = '7449709461:AAE1M2zp-Z_E6a_5yetifIzPqCH_E-Lb7tE'
