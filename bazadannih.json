@@ -4,6 +4,11 @@
             "username": "hehefys",
             "team": "Не указана",
             "wishes": "Не указаны"
+        },
+        "1034119489": {
+            "username": "Bu_anastasia",
+            "team": "Не указана",
+            "wishes": "Не указаны"
         }
     },
     "teams": {
@@ -34,6 +39,15 @@
         "hse": {
             "categories": [],
             "members": []
+        },
+        "qweqweqweqwe": {
+            "categories": [],
+            "members": [
+                {
+                    "user_id": 769269226,
+                    "category": "price_1000"
+                }
+            ]
         }
     }
 }
