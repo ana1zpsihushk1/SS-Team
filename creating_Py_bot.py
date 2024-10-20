@@ -120,7 +120,7 @@ def create_team(update: Update, context: CallbackContext, team_name: str) -> Non
     
     update.message.reply_text("Команда создана. Теперь укажи ценовые категории.", reply_markup=price_buttons())
     context.user_data['team'] = team_name
-
+#комент для проверки
 # Кнопки для ценовой категории
 def price_buttons():
     keyboard = [
