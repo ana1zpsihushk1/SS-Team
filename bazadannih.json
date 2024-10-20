@@ -2,10 +2,8 @@
     "users": {
         "769269226": {
             "username": "hehefys",
-            "team": "zv",
-            "wishes": "Не указаны",
-            "receiver": "Не назначен",
-            "money_group": "Не указана"
+            "team": "Не указана",
+            "wishes": "Не указаны"
         },
         "1034119489": {
             "username": "Bu_anastasia",
@@ -13,60 +11,5 @@
             "wishes": "Не указаны"
         }
     },
-    "teams": {
-        "qweqwwwww": {
-            "categories": [],
-            "members": []
-        },
-        "1000": {
-            "categories": [],
-            "members": []
-        },
-        "qq": {
-            "categories": [],
-            "members": []
-        },
-        "qweqweqwe": {
-            "categories": [],
-            "members": []
-        },
-        "qwe": {
-            "categories": [],
-            "members": []
-        },
-        "13241341341234erqwer": {
-            "categories": [],
-            "members": []
-        },
-        "hse": {
-            "categories": [],
-            "members": []
-        },
-        "qweqweqweqwe": {
-            "categories": [],
-            "members": [
-                {
-                    "user_id": 769269226,
-                    "category": "price_1000"
-                },
-                {
-                    "user_id": 769269226,
-                    "category": "price_500"
-                }
-            ]
-        },
-        "HELLO": {
-            "categories": [],
-            "members": []
-        },
-        "zv": {
-            "categories": [],
-            "members": [
-                {
-                    "user_id": 769269226,
-                    "category": "price_1000"
-                }
-            ]
-        }
-    }
+    "teams": {}
 }
