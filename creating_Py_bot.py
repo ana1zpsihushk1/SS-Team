@@ -154,7 +154,6 @@ def distribute(update, context): #Порыв творческого мракоб
         receiver_id = receiver_info['user_id']  # ID получателя
         receiver_wishes = data['users'][str(receiver_id)]['wishes']  # Желания получателя
 
-
         context.bot.send_message(chat_id=giver_id,
                                  text=f"Вы дарите подарок {receiver_info['username']}.")
         context.bot.send_message(chat_id=giver_id,
@@ -163,14 +162,14 @@ def distribute(update, context): #Порыв творческого мракоб
     update.message.reply_text("Распределение завершено!")
 
 
-def secret_santa(data['teams'][team_name]): #Порыв творческого мракобесия2, требует проверки!!!!!!!!!!!!!!!!!!!!!!!!
-    givers = data['teams'][team_name].copy()
-    receivers = data['teams'][team_name].copy()
+def secret_santa(members):
+    givers = members.copy()
+    receivers = members.copy()
 
     random.shuffle(receivers)
 
     # Перемешиваем получателей, чтобы никто не дарил самому себе
-    while any(g == r for g, r in zip(givers, receivers)):
+    while any(giver['user_id'] == receiver['user_id'] for giver, receiver in zip(givers, receivers)):
         random.shuffle(receivers)
 
     return dict(zip(givers, receivers))
