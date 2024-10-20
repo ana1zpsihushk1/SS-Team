@@ -8,8 +8,65 @@
         "1034119489": {
             "username": "Bu_anastasia",
             "team": "Не указана",
-            "wishes": "Не указаны"
+            "wishes": "какие-то вот такие вот пожелания вот"
+        },
+        "1000471060": {
+            "username": "redda_darko",
+            "team": "Не указана",
+            "wishes": "Не указаны",
+            "receiver": "Не назначен",
+            "money_group": "Не указана"
+        },
+        "974391606": {
+            "username": "sklinak",
+            "team": "Не указана",
+            "wishes": "Не указаны",
+            "receiver": "Не назначен",
+            "money_group": "Не указана"
+        },
+        "5228267374": {
+            "username": "Alyona_Tigina",
+            "team": "Не указана",
+            "wishes": "Какао-какаооо и кофе, много кофе, коооофеееееее",
+            "receiver": "Не назначен",
+            "money_group": "Не указана"
         }
     },
-    "teams": {}
+    "teams": {
+        "werttyy": {
+            "categories": [],
+            "members": [
+                769269226
+            ],
+            "creator": 769269226
+        },
+        "hahaha": {
+            "categories": [],
+            "members": [
+                1034119489
+            ],
+            "creator": 1034119489
+        },
+        "Ахаххахахахахахахах": {
+            "categories": [],
+            "members": [
+                5228267374
+            ],
+            "creator": 5228267374
+        },
+        "Тест": {
+            "categories": [],
+            "members": [
+                974391606
+            ],
+            "creator": 974391606
+        },
+        "Тест1": {
+            "categories": [],
+            "members": [
+                974391606
+            ],
+            "creator": 974391606
+        }
+    }
 }

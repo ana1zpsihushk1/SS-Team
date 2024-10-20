@@ -87,7 +87,7 @@ def join_team(update: Update, context: CallbackContext) -> None:
         update.message.reply_text("Команда с таким именем не найдена.")
 
 # Создание команды
-def create_team(update: Update, context: CallbackContext) -> None:
+def create_team(update: Update, context: CallbackContext, team_name: str) -> None:
     user_id = update.message.from_user.id
     team_name = update.message.text.strip()
     data = load_data('bazadannih.json')
@@ -137,6 +137,7 @@ def price_selection(update: Update, context: CallbackContext) -> None:
         query.message.reply_text("Только создатель команды может установить ценовую категорию.")
 
 # Функция для написания пожеланий
+# Обработка текстовых сообщений
 def write_wishes(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
     wishes = update.message.text.strip()
@@ -153,6 +154,10 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
 
     update.message.reply_text("Твои пожелания записаны! Теперь подожди, когда создатель команды запустит рандомизацию.")
     show_action_buttons(update.message.chat_id)
+
+    # После ввода текста, сбрасываем действие
+    context.user_data['action'] = None
+
 
 # Функция для отображения кнопок действия
 def show_action_buttons(chat_id):
