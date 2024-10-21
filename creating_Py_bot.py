@@ -83,13 +83,13 @@ def join_team(update: Update, context: CallbackContext, team_name: str) -> None:
     if team_name in data['teams']:
         # Добавляем пользователя в команду
         context.user_data['team'] = team_name
-        update.message.reply_text("Теперь выбери свою ценовую категорию.", reply_markup=price_buttons())
+                                                                   # мы без этой кнопки update.message.reply_text("Теперь выбери свою ценовую категорию.", reply_markup=price_buttons())
         
         # Обновляем список участников команды
         data['teams'][team_name]['members'].append(user_id)
 
         # Обновляем данные пользователя в базе данных
-        update_user_data(user_id, username, team=team_name, wishes='Не указаны', receiver='Не назначен', money_group='Не указана', filename='bazadannih.json')
+        update_user_data(user_id, username, team=team_name, wishes='Не указаны', receiver='Не назначен', filename='bazadannih.json')    # убрали money_group='Не указана'
 
         # Сохраняем обновленные данные
         save_data('bazadannih.json', data)
@@ -98,7 +98,7 @@ def join_team(update: Update, context: CallbackContext, team_name: str) -> None:
 
 
 # Создание команды
-def create_team(update: Update, context: CallbackContext, team_name: str) -> None:
+def create_team(update: Update, context: CallbackContext, team_name: str) -> None:                  # НУЖНО СДЕЛАТЬ ОТПРАВКУ КНОПКИ ЗАПУСКА РАНДОМА СОЗДАТЕЛЮ КОМАНДЫ  (CREATORу)
     user_id = update.message.from_user.id
     team_name = update.message.text.strip()
     data = load_data('bazadannih.json')
@@ -115,9 +115,9 @@ def create_team(update: Update, context: CallbackContext, team_name: str) -> Non
     }
     save_data('bazadannih.json', data)
     
-    update_user_data(user_id, context.user_data['username'], team=team_name, wishes='Не указаны', receiver='Не назначен', money_group='Не указана')
+    update_user_data(user_id, context.user_data['username'], team=team_name, wishes='Не указаны', receiver='Не назначен')          # убрали money_group='Не указана'
     
-    update.message.reply_text("Команда создана. Теперь укажи ценовые категории.", reply_markup=price_buttons())
+    update.message.reply_text("Команда создана.")
     context.user_data['team'] = team_name
 
 # Кнопки для ценовой категории
@@ -167,7 +167,7 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
         data = load_data('bazadannih.json')
         data['users'][str(user_id)]['wishes'] = wishes
         save_data('bazadannih.json', data)
-        update.message.reply_text("Твои пожелания записаны! Теперь подожди, когда создатель команды запустит рандомизацию.")
+        update.message.reply_text("Твои пожелания записаны! Теперь подожди, когда создатель команды запустит Рандомайзер.")
         show_action_buttons(update.message.chat_id)
 
     # После ввода текста, сбрасываем действие
