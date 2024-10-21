@@ -84,7 +84,7 @@ def join_team(update: Update, context: CallbackContext, team_name: str) -> None:
     if team_name in data['teams']:
         # Добавляем пользователя в команду
         context.user_data['team'] = team_name
-                                                                   # мы без этой кнопки update.message.reply_text("Теперь выбери свою ценовую категорию.", reply_markup=price_buttons())
+        update.message.reply_text("Теперь ты в команде!")
         
         # Обновляем список участников команды
         data['teams'][team_name]['members'].append(user_id)
@@ -243,7 +243,7 @@ def main() -> None:
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CallbackQueryHandler(team_selection))
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_wishes))
+    dispatcher.add_handler(CallbackQueryHandler(write_wishes))
     dispatcher.add_handler(CallbackQueryHandler(show_action_buttons))
    # dispatcher.add_handler(CallbackQueryHandler(price_selection, pattern='^price_.*$'))
     dispatcher.add_handler(CallbackQueryHandler(distribute, pattern='^distribute$'))
