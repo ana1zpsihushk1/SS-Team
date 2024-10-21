@@ -92,7 +92,11 @@ def join_team(update: Update, context: CallbackContext, team_name: str) -> None:
 
         # Сохраняем обновленные данные
         save_data('bazadannih.json', data)
-
+        
+        # Переводим пользователя в режим ввода пожеланий
+        context.user_data['action'] = 'write_wishes'
+        
+        # Спрашиваем пожелания
         update.message.reply_text("Ты присоединился к команде! Пожалуйста, напиши свои пожелания.")
         
         # Сбрасываем действие пользователя и переводим его в режим ввода пожеланий
@@ -103,7 +107,7 @@ def join_team(update: Update, context: CallbackContext, team_name: str) -> None:
 
 
 # Создание команды
-def create_team(update: Update, context: CallbackContext, team_name: str) -> None:                  # НУЖНО СДЕЛАТЬ ОТПРАВКУ КНОПКИ ЗАПУСКА РАНДОМА СОЗДАТЕЛЮ КОМАНДЫ  (CREATORу)
+def create_team(update: Update, context: CallbackContext, team_name: str) -> None:                 
     user_id = update.message.from_user.id
     team_name = update.message.text.strip()
     data = load_data('bazadannih.json')
@@ -120,10 +124,16 @@ def create_team(update: Update, context: CallbackContext, team_name: str) -> Non
     }
     save_data('bazadannih.json', data)
     
-    update_user_data(user_id, context.user_data['username'], team=team_name, wishes='Не указаны', receiver='Не назначен')          # убрали money_group='Не указана'
+    update_user_data(user_id, context.user_data['username'], team=team_name, wishes='Не указаны', receiver='Не назначен')        
     
     update.message.reply_text("Команда создана.")
     context.user_data['team'] = team_name
+    
+    # Переводим пользователя в режим ввода пожеланий
+    context.user_data['action'] = 'write_wishes'
+
+    # Спрашиваем пожелания
+    update.message.reply_text("Пожалуйста, напиши свои пожелания.")
 
 # Кнопки для ценовой категории
 #def price_buttons():
@@ -174,20 +184,21 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
 
         # Загружаем данные
         data = load_data('bazadannih.json')
-
+        
+        # Проверяем, состоит ли пользователь в команде
+        if str(user_id) not in data['users'] or data['users'][str(user_id)]['team'] == 'Не указана':
+            update.message.reply_text("Пожалуйста, присоединитесь к команде или создайте её, прежде чем писать пожелания.")
+            return
+        
         # Сохраняем пожелания в БД
-        if str(user_id) in data['users']:
-            data['users'][str(user_id)]['wishes'] = wishes
-        else:
-            # Если пользователя нет в БД, можно его добавить (хотя это маловероятно)
-            update_user_data(user_id, context.user_data['username'], team=context.user_data.get('team', 'Не указана'), wishes=wishes, receiver='Не назначен', money_group='Не указана')
+        data['users'][str(user_id)]['wishes'] = wishes
 
         # Сохраняем обновленные данные
         save_data('bazadannih.json', data)
 
         update.message.reply_text("Твои пожелания записаны! Теперь подожди, когда создатель команды запустит рандомизацию.")
         
-        show_action_buttons(update.message.chat_id)  # Вызываем функцию, чтобы показать кнопки
+        show_action_buttons(update, context)  # Показываем кнопки действий
 
     # После ввода текста, сбрасываем действие
     context.user_data['action'] = None
