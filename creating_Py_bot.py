@@ -88,7 +88,7 @@ def join_team(update: Update, context: CallbackContext, team_name: str) -> None:
         data['teams'][team_name]['members'].append(user_id)
 
         # Обновляем данные пользователя в базе данных
-        update_user_data(user_id, username, team=team_name, wishes='Не указаны', receiver='Не назначен', money_group='Не указана', filename='bazadannih.json')
+        update_user_data(user_id, username, team=team_name, wishes='Не указаны', receiver='Не назначен', filename='bazadannih.json')
 
         # Сохраняем обновленные данные
         save_data('bazadannih.json', data)
