@@ -162,27 +162,37 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
     elif user_action == 'write_wishes':  # Если пользователь пишет пожелания
         wishes = update.message.text.strip()
         if len(wishes) < 10:
-            update.message.reply_text("Пожалуйста, напишите более развернутые пожелания. Например: 'Мне очень не хватало теплых носков в этот холодный февраль'.")
+            update.message.reply_text("Пожалуйста, напишите более развернутые пожелания.")
             return
         data = load_data('bazadannih.json')
         data['users'][str(user_id)]['wishes'] = wishes
         save_data('bazadannih.json', data)
-        update.message.reply_text("Твои пожелания записаны! Теперь подожди, когда создатель команды запустит Рандомайзер.")
-        show_action_buttons(update.message.chat_id)
-
+        update.message.reply_text("Твои пожелания записаны! Теперь подожди, когда создатель команды запустит рандомизацию.")
+        show_action_buttons(update, context)  # Вызываем функцию, чтобы показать кнопки
     # После ввода текста, сбрасываем действие
     context.user_data['action'] = None
 
 
 
+
 # Функция для отображения кнопок действия
-def show_action_buttons(chat_id):
-    keyboard = [
-        [InlineKeyboardButton("Запустить распределение подарков", callback_data='distribute')],
-        [InlineKeyboardButton("Написать пожелание", callback_data='write_wish')]
-    ]
+def show_action_buttons(update: Update, context: CallbackContext):
+    user_id = update.message.from_user.id
+    team = context.user_data.get('team')
+    data = load_data('bazadannih.json')
+
+    if team and data['teams'][team]['creator'] == user_id:
+        keyboard = [
+            [InlineKeyboardButton("Запустить распределение подарков", callback_data='distribute')],
+            [InlineKeyboardButton("Написать пожелание", callback_data='write_wish')]
+        ]
+    else:
+        keyboard = [
+            [InlineKeyboardButton("Написать пожелание", callback_data='write_wish')]
+        ]
+
     reply_markup = InlineKeyboardMarkup(keyboard)
-    context.bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=reply_markup)
+    context.bot.send_message(chat_id=update.message.chat_id, text="Выберите действие:", reply_markup=reply_markup)
 
 # Функция распределения подарков
 def distribute(update: Update, context: CallbackContext) -> None:
