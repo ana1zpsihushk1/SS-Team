@@ -243,7 +243,7 @@ def main() -> None:
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CallbackQueryHandler(team_selection))
-    dispatcher.add_handler(CallbackQueryHandler(write_wishes))
+    dispatcher.add_handler(MessageHandler(write_wishes))
     dispatcher.add_handler(CallbackQueryHandler(show_action_buttons))
    # dispatcher.add_handler(CallbackQueryHandler(price_selection, pattern='^price_.*$'))
     dispatcher.add_handler(CallbackQueryHandler(distribute, pattern='^distribute$'))
