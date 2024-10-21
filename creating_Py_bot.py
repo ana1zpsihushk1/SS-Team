@@ -166,18 +166,32 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
         join_team(update, context, team_name)  # Вызываем функцию для присоединения к команде
     elif user_action == 'write_wishes':  # Если пользователь пишет пожелания
         wishes = update.message.text.strip()
+        
+        # Проверяем длину пожеланий
         if len(wishes) < 10:
             update.message.reply_text("Пожалуйста, напишите более развернутые пожелания.")
             return
+
+        # Загружаем данные
         data = load_data('bazadannih.json')
-        data['users'][str(user_id)]['wishes'] = wishes
+
+        # Сохраняем пожелания в БД
+        if str(user_id) in data['users']:
+            data['users'][str(user_id)]['wishes'] = wishes
+        else:
+            # Если пользователя нет в БД, можно его добавить (хотя это маловероятно)
+            update_user_data(user_id, context.user_data['username'], team=context.user_data.get('team', 'Не указана'), wishes=wishes, receiver='Не назначен', money_group='Не указана')
+
+        # Сохраняем обновленные данные
         save_data('bazadannih.json', data)
+
         update.message.reply_text("Твои пожелания записаны! Теперь подожди, когда создатель команды запустит рандомизацию.")
         
-        show_action_buttons(update, context)  # Вызываем функцию, чтобы показать кнопки
+        show_action_buttons(update.message.chat_id)  # Вызываем функцию, чтобы показать кнопки
 
     # После ввода текста, сбрасываем действие
     context.user_data['action'] = None
+
 
 
 
