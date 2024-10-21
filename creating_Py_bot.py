@@ -261,9 +261,13 @@ def distribute(update: Update, context: CallbackContext) -> None:
 
 # Функция рандомизации
 def secret_santa(members):
-    shuffled = members[:]
-    random.shuffle(shuffled)
-    return {members[i]: shuffled[i] for i in range(len(members))}
+    while True:
+        shuffled = members[:]
+        random.shuffle(shuffled)
+        
+      # Проверяем, чтобы никто не получил сам себя
+        if all(members[i] != shuffled[i] for i in range(len(members))):
+            return {members[i]: shuffled[i] for i in range(len(members))}
 
 # Основная функция
 def main() -> None:
