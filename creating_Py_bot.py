@@ -24,9 +24,10 @@ def update_user_data(user_id, username, team, wishes, filename='bazadannih.json'
         data['users'][str(user_id)] = {
             'username': username,
             'team': team,
-            'wishes': wishes,
+            'wishes': wishes
         }
     save_data(filename, data)
+
 
 # Начальная функция
 def start(update: Update, context: CallbackContext) -> None:
@@ -34,7 +35,7 @@ def start(update: Update, context: CallbackContext) -> None:
     username = update.message.from_user.username
     context.user_data['username'] = username
 
-    update_user_data(user_id, username, team='Не указана', wishes='Не указаны', receiver='Не назначен', money_group='Не указана')
+    update_user_data(user_id, username, team='Не указана', wishes='Не указаны')
 
     update.message.reply_text(f"Приветствую тебя, Дорогой Санта, {username}! 🎅\n"
                               "Я твой помощник - Вельф. Моя задача состоит в том, чтобы помочь тебе найти Санту, которому ты будешь дарить подарок.")
