@@ -201,11 +201,10 @@ def distribute(update: Update, context: CallbackContext) -> None:
         receiver = assignment[giver]
         wishes = data['users'][str(receiver)]['wishes']
         username = data['users'][str(receiver)]['username']
-        price_group = data['users'][str(receiver)]['money_group']
         
         context.bot.send_message(
             chat_id=giver,
-            text=f"Ты даришь подарок {username} (Ценовая категория: {price_group})\nПожелания: {wishes}"
+            text=f"Ты даришь подарок {username} \nПро себя он написал так: {wishes}"
         )
 
     context.bot.send_message(
@@ -233,6 +232,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CallbackQueryHandler(team_selection))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_wishes))
+    dispatcher.add_handler(CallbackQueryHandler(show_action_buttons))
    # dispatcher.add_handler(CallbackQueryHandler(price_selection, pattern='^price_.*$'))
     dispatcher.add_handler(CallbackQueryHandler(distribute, pattern='^distribute$'))
 
