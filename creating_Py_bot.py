@@ -68,6 +68,7 @@ def team_selection(update: Update, context: CallbackContext) -> None:
                                   "Пожалуйста, пишите пожелания и ценовые категории. После этого руководитель команды запустит рандомизацию подарков!")
 
 # Присоединение к команде
+# Присоединение к команде
 def join_team(update: Update, context: CallbackContext, team_name: str) -> None:
     user_id = update.message.from_user.id
     username = update.message.from_user.username
@@ -84,18 +85,21 @@ def join_team(update: Update, context: CallbackContext, team_name: str) -> None:
     if team_name in data['teams']:
         # Добавляем пользователя в команду
         context.user_data['team'] = team_name
-        update.message.reply_text("Теперь ты в команде!")
-        
-        # Обновляем список участников команды
         data['teams'][team_name]['members'].append(user_id)
 
         # Обновляем данные пользователя в базе данных
-        update_user_data(user_id, username, team=team_name, wishes='Не указаны', receiver='Не назначен', filename='bazadannih.json')    # убрали money_group='Не указана'
+        update_user_data(user_id, username, team=team_name, wishes='Не указаны', receiver='Не назначен', money_group='Не указана', filename='bazadannih.json')
 
         # Сохраняем обновленные данные
         save_data('bazadannih.json', data)
+
+        update.message.reply_text("Ты присоединился к команде! Пожалуйста, напиши свои пожелания.")
+        
+        # Сбрасываем действие пользователя и переводим его в режим ввода пожеланий
+        context.user_data['action'] = 'write_wishes'
     else:
         update.message.reply_text("Команда с таким именем не найдена.")
+
 
 
 # Создание команды
@@ -169,7 +173,9 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
         data['users'][str(user_id)]['wishes'] = wishes
         save_data('bazadannih.json', data)
         update.message.reply_text("Твои пожелания записаны! Теперь подожди, когда создатель команды запустит рандомизацию.")
+        
         show_action_buttons(update, context)  # Вызываем функцию, чтобы показать кнопки
+
     # После ввода текста, сбрасываем действие
     context.user_data['action'] = None
 
