@@ -18,16 +18,16 @@ def save_data(filename, data):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 # Функция для добавления в БД информации про новых пользователей
-def update_user_data(user_id, username, team, wishes, receiver, filename='bazadannih.json'):
+def update_user_data(user_id, username, team, wishes, filename='bazadannih.json'):
     data = load_data(filename)
     if str(user_id) not in data['users']:
         data['users'][str(user_id)] = {
             'username': username,
             'team': team,
-            'wishes': wishes,
-            'receiver': receiver,
+            'wishes': wishes
         }
     save_data(filename, data)
+
 
 # Начальная функция
 def start(update: Update, context: CallbackContext) -> None:
@@ -35,7 +35,7 @@ def start(update: Update, context: CallbackContext) -> None:
     username = update.message.from_user.username
     context.user_data['username'] = username
 
-    update_user_data(user_id, username, team='Не указана', wishes='Не указаны', receiver='Не назначен') # удалили money_group
+    update_user_data(user_id, username, team='Не указана', wishes='Не указаны')
 
     update.message.reply_text(f"Приветствую тебя, Дорогой Санта, {username}! 🎅\n"
                               "Я твой помощник - Вельф. Моя задача состоит в том, чтобы помочь тебе найти Санту, которому ты будешь дарить подарок.")
