@@ -18,13 +18,14 @@ def save_data(filename, data):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 # Функция для добавления в БД информации про новых пользователей
-def update_user_data(user_id, username, team, wishes, filename='bazadannih.json'):
+def update_user_data(user_id, username, team, wishes, receiver,filename='bazadannih.json'):
     data = load_data(filename)
     if str(user_id) not in data['users']:
         data['users'][str(user_id)] = {
             'username': username,
             'team': team,
-            'wishes': wishes
+            'wishes': wishes,
+            'receiver': receiver
         }
     save_data(filename, data)
 
