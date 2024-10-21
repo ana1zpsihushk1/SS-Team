@@ -162,9 +162,9 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
         join_team(update, context, team_name)  # Вызываем функцию для присоединения к команде
     elif user_action == 'write_wishes':  # Если пользователь пишет пожелания
         wishes = update.message.text.strip()
-        if len(wishes) < 10:
-            update.message.reply_text("Пожалуйста, напишите более развернутые пожелания.")
-            return
+        # if len(wishes) < 10:
+         #   update.message.reply_text("Пожалуйста, напишите более развернутые пожелания.")
+          #  return
         data = load_data('bazadannih.json')
         data['users'][str(user_id)]['wishes'] = wishes
         save_data('bazadannih.json', data)
