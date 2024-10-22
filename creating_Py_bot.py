@@ -77,7 +77,7 @@ def team_selection(update: Update, context: CallbackContext) -> None:
                                   "Ты можешь создать свою команду или присоединиться к существующей."
                                   "После этого напиши свои пожелания. А когда вся команда будет в сборе, Главный Санта запустит процесс рандомизации участников.")
 
-# Присоединение к команде
+
 # Присоединение к команде
 def join_team(update: Update, context: CallbackContext,  team_name: str) -> None:
     user_id = update.message.from_user.id
@@ -93,6 +93,10 @@ def join_team(update: Update, context: CallbackContext,  team_name: str) -> None
 
     # Проверяем, существует ли команда
     if team_name in data['teams']:
+        
+        if not isinstance(data['teams'][team_name]['members'], list):
+            data['teams'][team_name]['members'] = []
+            
         # Добавляем пользователя в команду
         context.user_data['team'] = team_name
         data['teams'][team_name]['members'].append(user_id)
