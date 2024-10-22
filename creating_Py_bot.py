@@ -6,7 +6,6 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageH
 
 # Читаем файл
 def load_data(filename):
-    
     if os.path.exists(filename):
         with open(filename, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -20,9 +19,7 @@ def save_data(filename, data):
 
 # Функция для добавления в БД информации про новых пользователей
 def update_user_data(user_id, username, team, wishes, receiver,filename='bazadannih.json'):
-    
     data = load_data(filename)
-    
     if str(user_id) not in data['users']:
         data['users'][str(user_id)] = {
             'username': username,
@@ -79,7 +76,6 @@ def team_selection(update: Update, context: CallbackContext) -> None:
 
 
 # Присоединение к команде
-# Присоединение к команде
 def join_team(update: Update, context: CallbackContext, team_name: str = None) -> None:
     user_id = update.message.from_user.id
     username = update.message.from_user.username
@@ -110,8 +106,6 @@ def join_team(update: Update, context: CallbackContext, team_name: str = None) -
 
     else:
         update.message.reply_text("Команда с таким именем не найдена.")
-
-
 
 
 # Создание команды
@@ -196,80 +190,65 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
         update.message.reply_text("Пожалуйста, сначала присоединись к команде или создай её.")
 
 
-
-
 # Функция для отображения кнопок действия
 def show_action_buttons(update: Update, context: CallbackContext):
-    
     if update.message:
         chat_id = update.message.chat_id
     elif update.callback_query:
         chat_id = update.callback_query.message.chat_id
-    else:
-        return  # Если ни то ни другое, функция не может работать
-    
-    user_id = update.message.from_user.id if update.message else update.callback_query.from_user.id
-    team = context.user_data.get('team')
-    data = load_data('bazadannih.json')
 
-    if team and data['teams'][team]['creator'] == user_id:
-        keyboard = [
-            [InlineKeyboardButton("Запустить распределение подарков", callback_data='distribute')],
-            [InlineKeyboardButton("Написать пожелание", callback_data='write_wish')]
-        ]
-    else:
-        keyboard = [
-            [InlineKeyboardButton("Написать пожелание", callback_data='write_wish')]
-        ]
-
+    # Кнопка для запуска распределения подарков
+    keyboard = [[InlineKeyboardButton("Запустить распределение подарков", callback_data='distribute')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    context.bot.send_message(chat_id=chat_id, text="Выбери действие:", reply_markup=reply_markup)
+    context.bot.send_message(chat_id=chat_id, text="Готовы начать игру Тайный Санта?", reply_markup=reply_markup)
+
 
 # Функция распределения подарков
 def distribute(update: Update, context: CallbackContext) -> None:
-    user_id = update.callback_query.from_user.id
-    team_name = context.user_data.get('team')
+    query = update.callback_query
     data = load_data('bazadannih.json')
 
-    if team_name not in data['teams']:
-        update.callback_query.message.reply_text("Команда не найдена.")
+    user_id = query.from_user.id
+    team_name = data['users'][str(user_id)]['team']
+
+    if not team_name or team_name == 'Не указана':
+        query.message.reply_text("Ты не состоишь в команде.")
         return
 
-    if len(data['teams'][team_name]['members']) < 2:
-        update.callback_query.message.reply_text("Недостаточно участников для игры.")
+    team = data['teams'][team_name]
+    members = team['members']
+
+    if len(members) < 2:
+        query.message.reply_text("Недостаточно участников для игры.")
         return
 
-    # Получаем распределение участников
-    assignment = secret_santa(data['teams'][team_name]['members'])
+    # Рандомизация участников
+    shuffled_members = members[:]
+    random.shuffle(shuffled_members)
 
-    # Отправляем каждому участнику его получателя
-    for giver in assignment:
-        receiver = assignment[giver]
-        wishes = data['users'][str(receiver)]['wishes']
-        username = data['users'][str(receiver)]['username']
-        
-        context.bot.send_message(
-            chat_id=giver,
-            text=f"Ты даришь подарок {username} \nПро себя он написал так: {wishes}"
-        )
+    # Сопоставляем участников
+    for i in range(len(shuffled_members)):
+        giver = shuffled_members[i]
+        receiver = shuffled_members[(i + 1) % len(shuffled_members)]
 
-    context.bot.send_message(
-        chat_id=user_id,
-        text="Распределение завершено! Каждый участник знает, кому он дарит подарок."
-    )
+        # Обновляем данные получателей в БД
+        data['users'][str(giver)]['receiver'] = data['users'][str(receiver)]['username']
 
-    # Отправка поздравления с НГ
-    context.bot.send_message(chat_id=user_id, text="С Новым Годом! Спасибо, что используешь нашего бота. 🎉")
+        # Отправляем сообщение каждому участнику
+        context.bot.send_message(giver, f"Ты будешь дарить подарок {data['users'][str(receiver)]['username']}!")
+        context.bot.send_message(giver, f"Пожелания: {data['users'][str(receiver)]['wishes']}")
 
-# Функция рандомизации
-def secret_santa(members):
-    while True:
-        shuffled = members[:]
-        random.shuffle(shuffled)
-        
-      # Проверяем, чтобы никто не получил сам себя
-        if all(members[i] != shuffled[i] for i in range(len(members))):
-            return {members[i]: shuffled[i] for i in range(len(members))}
+    save_data('bazadannih.json', data)
+
+    # Уведомляем создателя команды
+    query.message.reply_text("Распределение подарков завершено!")
+
+
+# Специальный обработчик для distribute
+def distribute_callback(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    query.answer()
+    distribute(update, context)  # Вызываем функцию распределения подарков
 
 # Основная функция
 def main() -> None:
@@ -279,13 +258,15 @@ def main() -> None:
 
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CallbackQueryHandler(team_selection))
-    dispatcher.add_handler(CallbackQueryHandler(join_team))
+    dispatcher.add_handler(CallbackQueryHandler(team_selection, pattern="^(join_team|create_team|how_it_works)$"))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_wishes))
-    dispatcher.add_handler(CallbackQueryHandler(distribute, pattern='^distribute$'))
+
+    # Специальный обработчик для распределения подарков
+    dispatcher.add_handler(CallbackQueryHandler(distribute_callback, pattern='^distribute$'))
 
     updater.start_polling()
     updater.idle()
+
 
 if __name__ == '__main__':
     main()
