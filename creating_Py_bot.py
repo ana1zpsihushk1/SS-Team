@@ -6,6 +6,7 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageH
 
 # Читаем файл
 def load_data(filename):
+    
     if os.path.exists(filename):
         with open(filename, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -19,7 +20,9 @@ def save_data(filename, data):
 
 # Функция для добавления в БД информации про новых пользователей
 def update_user_data(user_id, username, team, wishes, receiver,filename='bazadannih.json'):
+    
     data = load_data(filename)
+    
     if str(user_id) not in data['users']:
         data['users'][str(user_id)] = {
             'username': username,
@@ -27,6 +30,13 @@ def update_user_data(user_id, username, team, wishes, receiver,filename='bazadan
             'wishes': wishes,
             'receiver': receiver
         }
+    else:
+        # Обновляем данные пользователя
+        data['users'][str(user_id)]['username'] = username
+        data['users'][str(user_id)]['team'] = team
+        data['users'][str(user_id)]['wishes'] = wishes
+        data['users'][str(user_id)]['receiver'] = receiver
+        
     save_data(filename, data)
 
 
@@ -69,7 +79,7 @@ def team_selection(update: Update, context: CallbackContext) -> None:
 
 # Присоединение к команде
 # Присоединение к команде
-def join_team(update: Update, context: CallbackContext, team_name: str) -> None:
+def join_team(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
     username = update.message.from_user.username
     team_name = update.message.text.strip()
@@ -99,15 +109,13 @@ def join_team(update: Update, context: CallbackContext, team_name: str) -> None:
         # Спрашиваем пожелания
         update.message.reply_text("Ты присоединился к команде! Пожалуйста, напиши свои пожелания.")
         
-        # Сбрасываем действие пользователя и переводим его в режим ввода пожеланий
-        context.user_data['action'] = 'write_wishes'
     else:
         update.message.reply_text("Команда с таким именем не найдена.")
 
 
 
 # Создание команды
-def create_team(update: Update, context: CallbackContext, team_name: str) -> None:                 
+def create_team(update: Update, context: CallbackContext) -> None:                 
     user_id = update.message.from_user.id
     team_name = update.message.text.strip()
     data = load_data('bazadannih.json')
@@ -135,32 +143,6 @@ def create_team(update: Update, context: CallbackContext, team_name: str) -> Non
     # Спрашиваем пожелания
     update.message.reply_text("Пожалуйста, напиши свои пожелания.")
 
-# Кнопки для ценовой категории
-#def price_buttons():
- #   keyboard = [
-  #      [InlineKeyboardButton("До 500 руб.", callback_data='price_500')],
-   #     [InlineKeyboardButton("500 - 1000 руб.", callback_data='price_500_1000')],
-    #    [InlineKeyboardButton("Больше 1000 руб.", callback_data='price_1000')]
-   # ]
-    #return InlineKeyboardMarkup(keyboard)
-
-# Обработка выбора ценовой категории
-#def price_selection(update: Update, context: CallbackContext) -> None:
- #   query = update.callback_query
-  #  query.answer()
-  #
-    #user_id = query.from_user.id
-   # category = query.data
-   # team = context.user_data.get('team')
-#
- #  data = load_data('bazadannih.json')
- #
-   # if team and data['teams'][team]['creator'] == user_id:
-    #    data['teams'][team]['categories'].append(category)
-     #   save_data('bazadannih.json', data)
-      #  query.message.reply_text(f"Ценовая категория '{category}' установлена.")
-    #else:
-     #   query.message.reply_text("Только создатель команды может установить ценовую категорию.")
 
 
 # Обработка текстовых сообщений
@@ -213,13 +195,21 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Запустить распределение подарков", callback_data='distribute')]])
             )
 
-    # После ввода текста, сбрасываем действие
-    context.user_data['action'] = None
+        # После ввода текста, сбрасываем действие
+        context.user_data['action'] = None
 
 
 # Функция для отображения кнопок действия
 def show_action_buttons(update: Update, context: CallbackContext):
-    user_id = update.message.from_user.id
+    
+    if update.message:
+        chat_id = update.message.chat_id
+    elif update.callback_query:
+        chat_id = update.callback_query.message.chat_id
+    else:
+        return  # Если ни то ни другое, функция не может работать
+    
+    user_id = update.message.from_user.id if update.message else update.callback_query.from_user.id
     team = context.user_data.get('team')
     data = load_data('bazadannih.json')
 
@@ -234,7 +224,7 @@ def show_action_buttons(update: Update, context: CallbackContext):
         ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
-    context.bot.send_message(chat_id=update.message.chat_id, text="Выбери действие:", reply_markup=reply_markup)
+    context.bot.send_message(chat_id=chat_id, text="Выбери действие:", reply_markup=reply_markup)
 
 # Функция распределения подарков
 def distribute(update: Update, context: CallbackContext) -> None:
@@ -242,7 +232,11 @@ def distribute(update: Update, context: CallbackContext) -> None:
     team_name = context.user_data.get('team')
     data = load_data('bazadannih.json')
 
-    if team_name not in data['teams'] or len(data['teams'][team_name]['members']) < 2:
+    if team_name not in data['teams']:
+        update.callback_query.message.reply_text("Команда не найдена.")
+        return
+
+    if len(data['teams'][team_name]['members']) < 2:
         update.callback_query.message.reply_text("Недостаточно участников для игры.")
         return
 
@@ -288,8 +282,6 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CallbackQueryHandler(team_selection))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_wishes))
-    dispatcher.add_handler(CallbackQueryHandler(show_action_buttons))
-   # dispatcher.add_handler(CallbackQueryHandler(price_selection, pattern='^price_.*$'))
     dispatcher.add_handler(CallbackQueryHandler(distribute, pattern='^distribute$'))
 
     updater.start_polling()
