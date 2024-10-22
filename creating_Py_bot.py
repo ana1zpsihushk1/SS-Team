@@ -79,10 +79,11 @@ def team_selection(update: Update, context: CallbackContext) -> None:
 
 
 # Присоединение к команде
-def join_team(update: Update, context: CallbackContext,  team_name: str) -> None:
+# Присоединение к команде
+def join_team(update: Update, context: CallbackContext, team_name: str = None) -> None:
     user_id = update.message.from_user.id
     username = update.message.from_user.username
-    team_name = update.message.text.strip()
+    team_name = update.message.text.strip() if team_name is None else team_name
 
     data = load_data('bazadannih.json')
 
@@ -93,10 +94,6 @@ def join_team(update: Update, context: CallbackContext,  team_name: str) -> None
 
     # Проверяем, существует ли команда
     if team_name in data['teams']:
-        
-        if not isinstance(data['teams'][team_name]['members'], list):
-            data['teams'][team_name]['members'] = []
-            
         # Добавляем пользователя в команду
         context.user_data['team'] = team_name
         data['teams'][team_name]['members'].append(user_id)
@@ -106,15 +103,14 @@ def join_team(update: Update, context: CallbackContext,  team_name: str) -> None
 
         # Сохраняем обновленные данные
         save_data('bazadannih.json', data)
-        
-        # Переводим пользователя в режим ввода пожеланий
-        context.user_data['action'] = 'write_wishes'
-        
+
         # Спрашиваем пожелания
+        context.user_data['action'] = 'write_wishes'
         update.message.reply_text("Ты присоединился к команде! Пожалуйста, напиши свои пожелания.")
-        
+
     else:
         update.message.reply_text("Команда с таким именем не найдена.")
+
 
 
 
