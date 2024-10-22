@@ -146,37 +146,32 @@ def create_team(update: Update, context: CallbackContext, team_name: str) -> Non
 
 
 # Обработка текстовых сообщений
+# Обработка текстовых сообщений
 def write_wishes(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
     user_action = context.user_data.get('action')  # Проверяем текущее действие пользователя
-    team_name = context.user_data.get('team')  # Получаем название команды
+    data = load_data('bazadannih.json')
+
+    # Проверяем, состоит ли пользователь уже в команде
+    if str(user_id) in data['users'] and data['users'][str(user_id)]['team'] != 'Не указана':
+        team_name = data['users'][str(user_id)]['team']  # Получаем команду из БД
 
     if user_action == 'create_team':  # Если пользователь создаёт команду
         team_name = update.message.text.strip()
         create_team(update, context, team_name)  # Вызываем функцию для создания команды
-    elif user_action == 'join_team':  # Если пользователь присоединяется к команде
+    elif user_action == 'join_team' and (team_name == 'Не указана' or not team_name):  # Если пользователь присоединяется к команде и не состоит в ней
         team_name = update.message.text.strip()
         join_team(update, context, team_name)  # Вызываем функцию для присоединения к команде
-    elif user_action == 'write_wishes':  # Если пользователь пишет пожелания
+    elif user_action == 'write_wishes' or (team_name and team_name != 'Не указана'):  # Если пользователь пишет пожелания или уже в команде
         wishes = update.message.text.strip()
-        
+
         # Проверяем длину пожеланий
         if len(wishes) < 10:
             update.message.reply_text("Пожалуйста, напиши более развернутые пожелания.")
             return
 
-        # Загружаем данные
-        data = load_data('bazadannih.json')
-        
-        # Проверяем, состоит ли пользователь в команде
-        if str(user_id) not in data['users'] or data['users'][str(user_id)]['team'] == 'Не указана':
-            update.message.reply_text("Пожалуйста, присоединись к команде или создай её, прежде чем писать пожелания.")
-            return
-        
         # Сохраняем пожелания в БД
         data['users'][str(user_id)]['wishes'] = wishes
-
-        # Сохраняем обновленные данные
         save_data('bazadannih.json', data)
 
         # Отправляем участнику сообщение об ожидании
@@ -188,15 +183,17 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
             # Если это создатель команды, показываем ему кнопку для рандомизации
             show_action_buttons(update, context)
         else:
-            # Если это не создатель команды, отправляем сообщение
             context.bot.send_message(
                 chat_id=creator_id,
                 text="Все участники команды написали свои пожелания! А теперь подожди, пока Главный Санта не запустит рандомизацию.",
                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Запустить распределение подарков", callback_data='distribute')]])
             )
 
-        # После ввода текста, сбрасываем действие
+        # Сбрасываем действие после ввода пожеланий
         context.user_data['action'] = None
+    else:
+        update.message.reply_text("Пожалуйста, сначала присоединись к команде или создай её.")
+
 
 
 # Функция для отображения кнопок действия
