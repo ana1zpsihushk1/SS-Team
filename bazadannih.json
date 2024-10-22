@@ -1,30 +1,9 @@
 {
     "users": {
-        "1000471060": {
-            "username": "redda_darko",
-            "team": "Не указана",
-            "wishes": "Не указаны",
-            "receiver": "Не назначен",
-            "money_group": "Не указана"
-        },
-        "974391606": {
-            "username": "sklinak",
-            "team": "Не указана",
-            "wishes": "Не указаны",
-            "receiver": "Не назначен",
-            "money_group": "Не указана"
-        },
-        "5228267374": {
-            "username": "Alyona_Tigina",
-            "team": "Не указана",
-            "wishes": "Не указаны",
-            "receiver": "не указаны",
-            "money_group": "Не указана"
-        },
         "1034119489": {
             "username": "Bu_anastasia",
-            "team": "Проба14",
-            "wishes": "Не указаны",
+            "team": "Проба15",
+            "wishes": "пишу что-то, что можно написать",
             "receiver": "Не назначен"
         }
     },
@@ -93,6 +72,13 @@
             "members": [
                 1034119489,
                 5228267374
+            ],
+            "creator": 1034119489
+        },
+        "Проба15": {
+            "categories": [],
+            "members": [
+                1034119489
             ],
             "creator": 1034119489
         }

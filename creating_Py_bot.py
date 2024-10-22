@@ -144,13 +144,14 @@ def create_team(update: Update, context: CallbackContext, team_name: str) -> Non
     update.message.reply_text("Пожалуйста, напиши свои пожелания.")
 
 
-
-# Обработка текстовых сообщений
 # Обработка текстовых сообщений
 def write_wishes(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
     user_action = context.user_data.get('action')  # Проверяем текущее действие пользователя
     data = load_data('bazadannih.json')
+
+    # Инициализация team_name
+    team_name = None
 
     # Проверяем, состоит ли пользователь уже в команде
     if str(user_id) in data['users'] and data['users'][str(user_id)]['team'] != 'Не указана':
@@ -193,6 +194,7 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
         context.user_data['action'] = None
     else:
         update.message.reply_text("Пожалуйста, сначала присоединись к команде или создай её.")
+
 
 
 
