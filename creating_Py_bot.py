@@ -62,7 +62,7 @@ def start(update: Update, context: CallbackContext) -> None:
     update.message.reply_text("У тебя уже есть команда или ты хочешь создать свою?", reply_markup=reply_markup)
 
 # Обработка выбора команды
-def team_selection(update: Update, context: CallbackContext) -> None:
+def team_selection(update: Update, context: CallbackContext, team_name: str) -> None:
     query = update.callback_query
     query.answer()
 
@@ -79,7 +79,7 @@ def team_selection(update: Update, context: CallbackContext) -> None:
 
 # Присоединение к команде
 # Присоединение к команде
-def join_team(update: Update, context: CallbackContext) -> None:
+def join_team(update: Update, context: CallbackContext,  team_name: str) -> None:
     user_id = update.message.from_user.id
     username = update.message.from_user.username
     team_name = update.message.text.strip()
