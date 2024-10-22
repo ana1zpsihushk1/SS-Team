@@ -242,6 +242,8 @@ def distribute(update: Update, context: CallbackContext) -> None:
 
     # Уведомляем создателя команды
     query.message.reply_text("Распределение подарков завершено!")
+    query.message.reply_text(f"Не забудь приготоваить подарок вовремя, а то {data['users'][str(receiver)]['username']} останется без него!")
+    query.message.reply_text("С Новым годом!")
 
 
 # Специальный обработчик для distribute
