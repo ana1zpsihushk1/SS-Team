@@ -206,10 +206,10 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
             # Если это создатель команды, показываем ему кнопку для рандомизации
             show_action_buttons(update, context)
         else:
-            # Если это не создатель команды ?????????????????????????????????????????
+            # Если это не создатель команды, отправляем сообщение
             context.bot.send_message(
                 chat_id=creator_id,
-                text="Все участники команды написали свои пожелания! Ты можешь запустить рандомизацию.",
+                text="Все участники команды написали свои пожелания! Главный Санта запустил рандомизацию.",
                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Запустить распределение", callback_data='distribute')]])
             )
 
