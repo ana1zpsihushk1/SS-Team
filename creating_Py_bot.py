@@ -167,6 +167,7 @@ def create_team(update: Update, context: CallbackContext, team_name: str) -> Non
 def write_wishes(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
     user_action = context.user_data.get('action')  # Проверяем текущее действие пользователя
+    team_name = context.user_data.get('team')  # Получаем название команды
 
     if user_action == 'create_team':  # Если пользователь создаёт команду
         team_name = update.message.text.strip()
@@ -179,7 +180,7 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
         
         # Проверяем длину пожеланий
         if len(wishes) < 10:
-            update.message.reply_text("Пожалуйста, напишите более развернутые пожелания.")
+            update.message.reply_text("Пожалуйста, напиши более развернутые пожелания.")
             return
 
         # Загружаем данные
@@ -187,7 +188,7 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
         
         # Проверяем, состоит ли пользователь в команде
         if str(user_id) not in data['users'] or data['users'][str(user_id)]['team'] == 'Не указана':
-            update.message.reply_text("Пожалуйста, присоединитесь к команде или создайте её, прежде чем писать пожелания.")
+            update.message.reply_text("Пожалуйста, присоединись к команде или создай её, прежде чем писать пожелания.")
             return
         
         # Сохраняем пожелания в БД
@@ -196,15 +197,24 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
         # Сохраняем обновленные данные
         save_data('bazadannih.json', data)
 
+        # Отправляем участнику сообщение об ожидании
         update.message.reply_text("Твои пожелания записаны! Теперь подожди, когда создатель команды запустит рандомизацию.")
-        
-        show_action_buttons(update, context)  # Показываем кнопки действий
+
+        # Проверяем, является ли текущий пользователь создателем команды
+        creator_id = data['teams'][team_name]['creator']
+        if creator_id == user_id:
+            # Если это создатель команды, показываем ему кнопку для рандомизации
+            show_action_buttons(update, context)
+        else:
+            # Если это не создатель команды ?????????????????????????????????????????
+            context.bot.send_message(
+                chat_id=creator_id,
+                text="Все участники команды написали свои пожелания! Ты можешь запустить рандомизацию.",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Запустить распределение", callback_data='distribute')]])
+            )
 
     # После ввода текста, сбрасываем действие
     context.user_data['action'] = None
-
-
-
 
 
 # Функция для отображения кнопок действия
