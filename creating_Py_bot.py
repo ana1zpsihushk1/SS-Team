@@ -63,9 +63,9 @@ def team_selection(update: Update, context: CallbackContext) -> None:
         query.message.reply_text("Придумай название для своей команды.")
         context.user_data['action'] = 'create_team'
     elif query.data == "how_it_works":
-        query.message.reply_text("Этот бот поможет вам участвовать в игре Тайный Санта. "
-                                  "Вы можете создать свою команду или присоединиться к существующей. "
-                                  "Пожалуйста, пишите пожелания и ценовые категории. После этого руководитель команды запустит рандомизацию подарков!")
+        query.message.reply_text("Этот бот поможет тебе поучаствовать в игре Тайный Санта."
+                                  "Ты можешь создать свою команду или присоединиться к существующей."
+                                  "После этого напиши свои пожелания. А когда вся команда будет в сборе, Главный Санта запустит процесс рандомизации участников.")
 
 # Присоединение к команде
 # Присоединение к команде
@@ -113,7 +113,7 @@ def create_team(update: Update, context: CallbackContext, team_name: str) -> Non
     data = load_data('bazadannih.json')
 
     if team_name in data['teams']:
-        update.message.reply_text("Команда с таким именем уже существует, выбери другое.")
+        update.message.reply_text("Команда с таким именем уже существует, выбери другое название.")
         return
 
     # Создание новой команды
@@ -209,8 +209,8 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
             # Если это не создатель команды, отправляем сообщение
             context.bot.send_message(
                 chat_id=creator_id,
-                text="Все участники команды написали свои пожелания! Главный Санта запустил рандомизацию.",
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Запустить распределение", callback_data='distribute')]])
+                text="Все участники команды написали свои пожелания! А теперь подожди, пока Главный Санта не запустит рандомизацию.",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Запустить распределение подарков", callback_data='distribute')]])
             )
 
     # После ввода текста, сбрасываем действие
@@ -234,7 +234,7 @@ def show_action_buttons(update: Update, context: CallbackContext):
         ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
-    context.bot.send_message(chat_id=update.message.chat_id, text="Выберите действие:", reply_markup=reply_markup)
+    context.bot.send_message(chat_id=update.message.chat_id, text="Выбери действие:", reply_markup=reply_markup)
 
 # Функция распределения подарков
 def distribute(update: Update, context: CallbackContext) -> None:
@@ -262,8 +262,7 @@ def distribute(update: Update, context: CallbackContext) -> None:
 
     context.bot.send_message(
         chat_id=user_id,
-        text="Распределение завершено! Каждый участник знает, кому он дарит подарок.\n"
-             "Когда сделаешь подарок, напиши кодовое слово 'ГОТОВО'."
+        text="Распределение завершено! Каждый участник знает, кому он дарит подарок."
     )
 
     # Отправка поздравления с НГ
