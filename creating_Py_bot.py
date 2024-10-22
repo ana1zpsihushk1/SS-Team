@@ -285,7 +285,6 @@ def main() -> None:
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CallbackQueryHandler(team_selection))
-    dispatcher.add_handler(CallbackQueryHandler(join_team))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_wishes))
     dispatcher.add_handler(CallbackQueryHandler(distribute, pattern='^distribute$'))
 
