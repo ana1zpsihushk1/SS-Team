@@ -198,9 +198,9 @@ def show_action_buttons(update: Update, context: CallbackContext):
         chat_id = update.callback_query.message.chat_id
 
     # Кнопка для запуска распределения подарков
-    keyboard = [[InlineKeyboardButton("Запустить распределение подарков", callback_data='distribute')]]
+    keyboard = [[InlineKeyboardButton("❄️ Запустить распределение подарков ❄️", callback_data='distribute')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    context.bot.send_message(chat_id=chat_id, text="Готовы начать игру Тайный Санта?", reply_markup=reply_markup)
+    context.bot.send_message(chat_id=chat_id, text=" ❄️Готовы начать игру Тайный Санта?❄️", reply_markup=reply_markup)
 
 
 # Функция распределения подарков
@@ -242,7 +242,7 @@ def distribute(update: Update, context: CallbackContext) -> None:
 
     # Уведомляем создателя команды
     query.message.reply_text("Распределение подарков завершено!")
-    query.message.reply_text(f"Не забудь приготоваить подарок вовремя, а то {data['users'][str(receiver)]['username']} останется без него!")
+    query.message.reply_text(f"Не забудь приготовить подарок вовремя, а то {data['users'][str(receiver)]['username']} останется без него!")
     query.message.reply_text("С Новым годом!")
 
 
@@ -272,3 +272,4 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
+
