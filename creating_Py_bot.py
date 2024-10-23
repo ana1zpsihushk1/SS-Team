@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, CallbackContext
 
@@ -242,7 +243,7 @@ def distribute(update: Update, context: CallbackContext) -> None:
 
     # Уведомляем создателя команды
     query.message.reply_text("Распределение подарков завершено!")
-    query.message.reply_text(f"Не забудь приготоваить подарок вовремя, а то {data['users'][str(receiver)]['username']} останется без него!")
+    query.message.reply_text(f"Не забудь приготовить подарок вовремя, а то {data['users'][str(receiver)]['username']} останется без него!")
     query.message.reply_text("С Новым годом!")
 
 
@@ -255,6 +256,19 @@ def distribute_callback(update: Update, context: CallbackContext) -> None:
 # Основная функция
 def main() -> None:
     TOKEN = '7449709461:AAE1M2zp-Z_E6a_5yetifIzPqCH_E-Lb7tE'
+
+
+
+    bot = telebot.TeleBot(TOKEN)
+
+    @bot.message_handler(commands=['start'])
+    def start(message):
+      bot.send_message(message.chat.id, "Привет! 👋 Я бот, который может поздравить вас с Новым годом! 🎉")
+
+    @bot.message_handler(func=lambda message: datetime.now().month == 12 and datetime.now().day == 31)
+    def new_year_greeting(message):
+      bot.send_message(message.chat.id, "С Новым годом! 🥳 Желаю вам счастья, здоровья и исполнения всех желаний! ✨")
+
 
     updater = Updater(token=TOKEN, use_context=True)
 
