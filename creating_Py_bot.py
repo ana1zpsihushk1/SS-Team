@@ -282,7 +282,7 @@ def show_action_buttons(update: Update, context: CallbackContext) -> None:
 def rate_secret_santa(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
     query.answer()
-    query.message.reply_text("Пожалуйста, оцените работу Secret Santa, ответив на это сообщение числом от 1 до 10.")
+    query.message.reply_text("Пожалуйста, оцените работу Secret HSanta, ответив на это сообщение числом от 1 до 10.")
 
 def handle_rating(update: Update, context: CallbackContext) -> None:
     rating = update.message.text.strip()
