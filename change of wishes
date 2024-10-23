@@ -302,7 +302,7 @@ def distribute_callback(update: Update, context: CallbackContext) -> None:
 
 # Основная функция
 def main() -> None:
-    TOKEN = '8019369654:AAGhCJ-HCgzsQMjGAzEpkVU0wO61JPdgOYI'
+    TOKEN = '7449709461:AAE1M2zp-Z_E6a_5yetifIzPqCH_E-Lb7tE'
 
     updater = Updater(token=TOKEN, use_context=True)
 
