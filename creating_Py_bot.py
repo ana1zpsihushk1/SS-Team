@@ -266,10 +266,51 @@ def main() -> None:
     # Специальный обработчик для распределения подарков
     dispatcher.add_handler(CallbackQueryHandler(distribute_callback, pattern='^distribute$'))
 
+def show_action_buttons(update: Update, context: CallbackContext) -> None:
+    if update.message:
+        chat_id = update.message.chat_id
+    elif update.callback_query:
+        chat_id = update.callback_query.message.chat_id
+
+    keyboard = [
+        [InlineKeyboardButton("Оценить работу Secret Santa", callback_data='rate_secret_santa')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+
+# Обработчик для оценки работы Secret НSanta
+def rate_secret_santa(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    query.answer()
+    query.message.reply_text("Пожалуйста, оцените работу Secret Santa, ответив на это сообщение числом от 1 до 10.")
+
+def handle_rating(update: Update, context: CallbackContext) -> None:
+    rating = update.message.text.strip()
+    if rating.isdigit() and 1 <= int(rating) <= 10:
+        update.message.reply_text(f"Спасибо за вашу оценку: {rating}!")
+        # Сохраните или обработайте оценку здесь
+    else:
+        update.message.reply_text("Пожалуйста, введите число от 1 до 10 для оценки.")
+
+def main() -> None:
+    TOKEN = '7449709461:AAE1M2zp-Z_E6a_5yetifIzPqCH_E-Lb7tE'
+    updater = Updater(token=TOKEN, use_context=True)
+    dispatcher = updater.dispatcher
+
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CallbackQueryHandler(team_selection, pattern="^(join_team|create_team|how_it_works)$"))
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_wishes))
+    dispatcher.add_handler(CallbackQueryHandler(distribute_callback, pattern='^distribute$'))
+
+    # Обработчик для оценки работы Secret Santa
+    dispatcher.add_handler(CallbackQueryHandler(rate_secret_santa, pattern='^rate_secret_santa$'))
+    dispatcher.add_handler(MessageHandler(Filters.text & Filters.reply, handle_rating))
+
     updater.start_polling()
     updater.idle()
 
-
 if __name__ == '__main__':
     main()
+
+    
 
