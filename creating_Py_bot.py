@@ -273,16 +273,18 @@ def show_action_buttons(update: Update, context: CallbackContext) -> None:
         chat_id = update.callback_query.message.chat_id
 
     keyboard = [
+        [InlineKeyboardButton("Запустить распределение подарков", callback_data='distribute')],
         [InlineKeyboardButton("Оценить работу Secret Santa", callback_data='rate_secret_santa')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
+    context.bot.send_message(chat_id=chat_id, text="Готовы начать игру Тайный Санта?", reply_markup=reply_markup)
 
-# Обработчик для оценки работы Secret НSanta
+# Обработчик для оценки работы Secret Santa
 def rate_secret_santa(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
     query.answer()
-    query.message.reply_text("Пожалуйста, оцените работу Secret HSanta, ответив на это сообщение числом от 1 до 10.")
+    query.message.reply_text("Пожалуйста, оцените работу Secret Santa, ответив на это сообщение числом от 1 до 10.")
 
 def handle_rating(update: Update, context: CallbackContext) -> None:
     rating = update.message.text.strip()
@@ -311,6 +313,5 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
-
     
 
