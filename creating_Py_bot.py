@@ -85,7 +85,7 @@ def join_team(update: Update, context: CallbackContext, team_name: str = None) -
 
     # Проверяем, не состоит ли пользователь уже в другой команде
     if str(user_id) in data['users'] and data['users'][str(user_id)]['team'] != 'Не указана':
-        update.message.reply_text("Ты уже состоишь в команде и не можешь присоединиться к другой.")
+        update.message.reply_text("Ты уже состоишь в команде и не можешь присоединиться к другой 😥.")
         return
 
     # Проверяем, существует ли команда
@@ -105,7 +105,7 @@ def join_team(update: Update, context: CallbackContext, team_name: str = None) -
         update.message.reply_text("Ты присоединился к команде! Пожалуйста, напиши свои пожелания.")
 
     else:
-        update.message.reply_text("Команда с таким именем не найдена.")
+        update.message.reply_text("Команда с таким именем не найдена 😥.")
 
 
 # Создание команды
@@ -219,7 +219,7 @@ def distribute(update: Update, context: CallbackContext) -> None:
     members = team['members']
 
     if len(members) < 2:
-        query.message.reply_text("Недостаточно участников для игры.")
+        query.message.reply_text("Недостаточно участников для игры 😥.")
         return
 
     # Рандомизация участников
@@ -242,7 +242,7 @@ def distribute(update: Update, context: CallbackContext) -> None:
 
     # Уведомляем создателя команды
     query.message.reply_text("Распределение подарков завершено!")
-    query.message.reply_text(f"Не забудь приготоваить подарок вовремя, а то {data['users'][str(receiver)]['username']} останется без него!")
+    query.message.reply_text(f"Не забудь приготовить подарок вовремя, а то {data['users'][str(receiver)]['username']} останется без него!")
     query.message.reply_text("С Новым годом!")
 
 
