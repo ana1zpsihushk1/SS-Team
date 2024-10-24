@@ -56,7 +56,7 @@ def start(update: Update, context: CallbackContext) -> None:
         [InlineKeyboardButton("У меня есть команда", callback_data='join_team')],
         [InlineKeyboardButton("Создать свою команду", callback_data='create_team')],
         [InlineKeyboardButton("Как это работает?", callback_data='how_it_works')],
-        [InlineKeyboardButton("Оставить отзыв", callback_data='leave_feedback')]  # Добавляем кнопку для отзыва
+        [InlineKeyboardButton("Изменить пожелание", callback_data='change_wishes')]  # Добавляем кнопку изменить пожелание
     ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -198,20 +198,15 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
 
 # Новая функция для отзыва
 def leave_feedback_prompt(update: Update, context: CallbackContext) -> None:
-    update.callback_query.message.reply_text("Пожалуйста, напиши свой отзыв.")
-    context.user_data['action'] = 'leave_feedback'
+    update.callback_query.message.reply_text("Можешь написать измененное пожелание ")
+    context.user_data['action'] = 'change_wishes'
 
 
-# Обработка текста отзыва
-def handle_feedback(update: Update, context: CallbackContext) -> None:
+# Обработка текста изменения пожеланий 
+def func_change_wishes(update: Update, context: CallbackContext) -> None: 
     user_id = update.message.from_user.id
     feedback = update.message.text.strip()
     username = update.message.from_user.username
-
-    with open("feedback.txt", "a", encoding="utf-8") as f:
-        f.write(f"Отзыв от {username} ({user_id}): {feedback}\n")
-
-    update.message.reply_text("Спасибо за твой отзыв!")
     context.user_data['action'] = None
 
 
@@ -285,12 +280,12 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CallbackQueryHandler(team_selection, pattern="^(join_team|create_team|how_it_works|leave_feedback)$"))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_wishes))
-
+    # Обработчик для отзыва
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, func_change_wishes))
     # Специальный обработчик для распределения подарков
     dispatcher.add_handler(CallbackQueryHandler(distribute_callback, pattern='^distribute$'))
 
-    # Обработчик для отзыва
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_feedback))
+
 
     updater.start_polling()
     updater.idle()
