@@ -1,9 +1,9 @@
 import json
 import os
 import random
-import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, CallbackContext
+from datetime import datetime, time, timedelta
 
 # Читаем файл
 def load_data(filename):
@@ -243,7 +243,7 @@ def distribute(update: Update, context: CallbackContext) -> None:
 
     # Уведомляем создателя команды
     query.message.reply_text("Распределение подарков завершено!")
-    query.message.reply_text(f"Не забудь приготовить подарок вовремя, а то {data['users'][str(receiver)]['username']} останется без него!")
+    query.message.reply_text(f"Не забудь приготоваить подарок вовремя, а то {data['users'][str(receiver)]['username']} останется без него!")
     query.message.reply_text("С Новым годом!")
 
 
@@ -253,14 +253,20 @@ def distribute_callback(update: Update, context: CallbackContext) -> None:
     query.answer()
     distribute(update, context)  # Вызываем функцию распределения подарков
 
-#НГ поздравление
-TOKEN1 = '7449709461:AAE1M2zp-Z_E6a_5yetifIzPqCH_E-Lb7tE'
+# Функция для отправки поздравления с Новым годом
+def send_new_year_greetings(context: CallbackContext):
+    data = load_data('bazadannih.json')
+    
+    for user_id in data['users']:
+        context.bot.send_message(chat_id=user_id, text="🎉 С Новым Годом! Пусть этот год принесёт тебе много радости, удачи и счастья! 🎉")
 
-bot = telebot.TeleBot(TOKEN1)
-
-def new_year_greeting(update, context):
-  if datetime.now().month == 12 and datetime.now().day == 31:
-    update.message.reply_text("С Новым годом! 🥳 Желаю вам счастья, здоровья и исполнения всех желаний! ✨")
+# Планировщик поздравлений с Новым годом
+def schedule_new_year_greetings(updater: Updater):
+    now = datetime.now()
+    next_midnight = datetime.combine(now + timedelta(days=1), time.min)  # Полночь следующего дня
+    
+    delay = (next_midnight - now).total_seconds()  # Время до полуночи
+    updater.job_queue.run_once(send_new_year_greetings, delay)
 
 # Основная функция
 def main() -> None:
@@ -275,12 +281,12 @@ def main() -> None:
 
     # Специальный обработчик для распределения подарков
     dispatcher.add_handler(CallbackQueryHandler(distribute_callback, pattern='^distribute$'))
-    # Обработчик для поздравления с Новым годом
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, new_year_greeting))
-    
+    # Планируем отправку поздравления
+    schedule_new_year_greetings(updater)
+
     updater.start_polling()
     updater.idle()
 
+
 if __name__ == '__main__':
     main()
-    
