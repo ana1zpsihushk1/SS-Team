@@ -283,8 +283,7 @@ def main() -> None:
     updater = Updater(token=TOKEN, use_context=True)
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(
-        CallbackQueryHandler(team_selection, pattern="^(join_team|create_team|how_it_works|leave_feedback)$"))
+    dispatcher.add_handler(CallbackQueryHandler(team_selection, pattern="^(join_team|create_team|how_it_works|leave_feedback)$"))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_wishes))
 
     # Специальный обработчик для распределения подарков
