@@ -257,19 +257,6 @@ def distribute_callback(update: Update, context: CallbackContext) -> None:
 def main() -> None:
     TOKEN = '7449709461:AAE1M2zp-Z_E6a_5yetifIzPqCH_E-Lb7tE'
 
-
-
-    bot = telebot.TeleBot(TOKEN)
-
-    @bot.message_handler(commands=['start'])
-    def start(message):
-      bot.send_message(message.chat.id, "Привет! 👋 Я бот, который может поздравить вас с Новым годом! 🎉")
-
-    @bot.message_handler(func=lambda message: datetime.now().month == 12 and datetime.now().day == 31)
-    def new_year_greeting(message):
-      bot.send_message(message.chat.id, "С Новым годом! 🥳 Желаю вам счастья, здоровья и исполнения всех желаний! ✨")
-
-
     updater = Updater(token=TOKEN, use_context=True)
 
     dispatcher = updater.dispatcher
@@ -279,10 +266,17 @@ def main() -> None:
 
     # Специальный обработчик для распределения подарков
     dispatcher.add_handler(CallbackQueryHandler(distribute_callback, pattern='^distribute$'))
+    # Функция поздравления с Новым годом
+    def new_year_greeting(update, context):
+        if datetime.now().month == 12 and datetime.now().day == 31:
+            update.message.reply_text("С Новым годом! 🥳 Желаю вам счастья, здоровья и исполнения всех желаний! ✨")
+
+    # Обработчик для поздравления с Новым годом
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, new_year_greeting)) 
 
     updater.start_polling()
     updater.idle()
 
-
 if __name__ == '__main__':
     main()
+    
