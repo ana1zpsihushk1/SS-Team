@@ -149,7 +149,7 @@ def create_team(update: Update, context: CallbackContext, team_name: str) -> Non
 # Обработка текстовых сообщений
 def write_wishes(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
-    user_action = context.user_data.get('action')  # Проверяем текущее действие пользователя
+    user_action = context.user_data.get('action')
     data = load_data('bazadannih.json')
 
     # Инициализация team_name
@@ -157,20 +157,28 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
 
     # Проверяем, состоит ли пользователь уже в команде
     if str(user_id) in data['users'] and data['users'][str(user_id)]['team'] != 'Не указана':
-        team_name = data['users'][str(user_id)]['team']  # Получаем команду из БД
-    if user_action == 'edit_wishes':  # Проверяем, хочет ли пользователь редактировать пожелания
-        handle_edit_wishes(update, context)
-        return  # Завершаем выполнение функции, чтобы не выполнять остальной код
+        team_name = data['users'][str(user_id)]['team']
 
-    if user_action == 'create_team':  # Если пользователь создаёт команду
+    if user_action == 'edit_wishes':
+        new_wishes = update.message.text.strip()
+        if len(new_wishes) < 10:
+            update.message.reply_text("Пожалуйста, напиши более развернутые пожелания.")
+            return
+
+        # Сохраняем пожелания в БД
+        data['users'][str(user_id)]['wishes'] = new_wishes
+        save_data('bazadannih.json', data)
+        update.message.reply_text("Твои пожелания обновлены!")
+        context.user_data['action'] = None  # Сбрасываем действие
+        return  # Завершаем выполнение функции
+
+    if user_action == 'create_team':
         team_name = update.message.text.strip()
-        create_team(update, context, team_name)  # Вызываем функцию для создания команды
-    elif user_action == 'join_team' and (
-            team_name == 'Не указана' or not team_name):  # Если пользователь присоединяется к команде и не состоит в ней
+        create_team(update, context, team_name)
+    elif user_action == 'join_team' and (team_name == 'Не указана' or not team_name):
         team_name = update.message.text.strip()
-        join_team(update, context, team_name)  # Вызываем функцию для присоединения к команде
-    elif user_action == 'write_wishes' or (
-            team_name and team_name != 'Не указана'):  # Если пользователь пишет пожелания или уже в команде
+        join_team(update, context, team_name)
+    elif user_action == 'write_wishes' or (team_name and team_name != 'Не указана'):
         wishes = update.message.text.strip()
 
         # Проверяем длину пожеланий
@@ -183,57 +191,35 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
         save_data('bazadannih.json', data)
 
         # Отправляем участнику сообщение об ожидании
-        update.message.reply_text(
-            "Твои пожелания записаны! Теперь подожди, когда создатель команды запустит рандомизацию.")
+        update.message.reply_text("Твои пожелания записаны! Теперь подожди, когда создатель команды запустит рандомизацию.")
 
         # Проверяем, является ли текущий пользователь создателем команды
         creator_id = data['teams'][team_name]['creator']
         if creator_id == user_id:
-            # Если это создатель команды, показываем ему кнопку для рандомизации
             show_action_buttons(update, context)
         else:
             context.bot.send_message(
                 chat_id=creator_id,
-                text="Все участники команды написали свои пожелания! А теперь подожди, пока Главный Санта не запустит рандомизацию.",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("Запустить распределение подарков", callback_data='distribute')]])
+                text="Все участники команды написали свои пожелания! А теперь подожди, пока Главный Санта не запустит рандомизацию."
             )
 
-        # Сбрасываем действие после ввода пожеланий
-        context.user_data['action'] = None
+        context.user_data['action'] = None  # Сбрасываем действие
     else:
         update.message.reply_text("Пожалуйста, сначала присоединись к команде или создай её.")
 
 # Функция для изменения пожеланий
 def edit_wishes(update: Update, context: CallbackContext) -> None:
-    user_id = update.callback_query.from_user.id
-    data = load_data('bazadannih.json')
-
-    # Проверяем, есть ли у пользователя пожелания
-    if str(user_id) in data['users']:
-        current_wishes = data['users'][str(user_id)]['wishes']
-        update.callback_query.message.reply_text(f"Твои текущие пожелания: {current_wishes}\n"
-                                                  "Пожалуйста, напиши новые пожелания.")
-        context.user_data['action'] = 'edit_wishes'  # Устанавливаем новое действие
-    else:
-        update.callback_query.message.reply_text("У тебя ещё нет пожеланий. Пожалуйста, напиши их сначала.")
-
-# Обработка обновленных пожеланий
-def handle_edit_wishes(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
     data = load_data('bazadannih.json')
 
-    if context.user_data.get('action') == 'edit_wishes':
-        new_wishes = update.message.text.strip()
-        if len(new_wishes) < 10:
-            update.message.reply_text("Пожалуйста, напиши более развернутые пожелания.")
-            return
+    if str(user_id) in data['users']:
+        current_wishes = data['users'][str(user_id)]['wishes']
+        context.user_data['action'] = 'edit_wishes'
+        update.message.reply_text(f"Текущие пожелания: {current_wishes}\n"
+                                   "Напиши новые пожелания.")
+    else:
+        update.message.reply_text("Сначала напишите пожелания!")
 
-        data['users'][str(user_id)]['wishes'] = new_wishes
-        save_data('bazadannih.json', data)
-
-        update.message.reply_text("Твои пожелания обновлены!")
-        context.user_data['action'] = None  # Сбрасываем действие
 
 # Функция для отображения кнопок действия
 def show_action_buttons(update: Update, context: CallbackContext):
@@ -309,8 +295,8 @@ def main() -> None:
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CallbackQueryHandler(team_selection, pattern="^(join_team|create_team|how_it_works)$"))
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_edit_wishes))  # Обработка обновленных пожеланий
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_wishes))
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_wishes))  # Один обработчик для пожеланий
+
 
     # Специальный обработчик для распределения подарков
     dispatcher.add_handler(CallbackQueryHandler(distribute_callback, pattern='^distribute$'))
