@@ -238,8 +238,8 @@ def distribute(update: Update, context: CallbackContext) -> None:
         # Отправляем сообщение каждому участнику
         context.bot.send_message(giver, f"Ты будешь дарить подарок {data['users'][str(receiver)]['username']}!")
         context.bot.send_message(giver, f"Пожелания: {data['users'][str(receiver)]['wishes']}")
-        context.bot.send_message(f"Не забудь приготоваить подарок вовремя, а то {data['users'][str(receiver)]['username']} останется без него!")
-        context.bot.send_message("С Новым годом!")
+        query.message.reply_text(f"Не забудь приготоваить подарок вовремя, а то {data['users'][str(receiver)]['username']} останется без него!")
+        query.message.reply_text("С Новым годом!")
 
     save_data('bazadannih.json', data)
 
