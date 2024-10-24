@@ -159,6 +159,7 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
     if str(user_id) in data['users'] and data['users'][str(user_id)]['team'] != 'Не указана':
         team_name = data['users'][str(user_id)]['team']
 
+    # Обработка изменения пожеланий
     if user_action == 'edit_wishes':
         new_wishes = update.message.text.strip()
         if len(new_wishes) < 10:
@@ -172,6 +173,7 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
         context.user_data['action'] = None  # Сбрасываем действие
         return  # Завершаем выполнение функции
 
+    # Обработка других действий
     if user_action == 'create_team':
         team_name = update.message.text.strip()
         create_team(update, context, team_name)
@@ -191,34 +193,21 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
         save_data('bazadannih.json', data)
 
         # Отправляем участнику сообщение об ожидании
-        update.message.reply_text("Твои пожелания записаны! Теперь подожди, когда создатель команды запустит рандомизацию.")
-
-        # Проверяем, является ли текущий пользователь создателем команды
-        creator_id = data['teams'][team_name]['creator']
-        if creator_id == user_id:
-            show_action_buttons(update, context)
-        else:
-            context.bot.send_message(
-                chat_id=creator_id,
-                text="Все участники команды написали свои пожелания! А теперь подожди, пока Главный Санта не запустит рандомизацию."
-            )
-
+        update.message.reply_text("Твои пожелания записаны! Теперь подожди, когда создатель команды запустит рандомизацию участников.")
         context.user_data['action'] = None  # Сбрасываем действие
-    else:
-        update.message.reply_text("Пожалуйста, сначала присоединись к команде или создай её.")
 
-# Функция для изменения пожеланий
+# Функция для редактирования пожеланий
 def edit_wishes(update: Update, context: CallbackContext) -> None:
-    user_id = update.message.from_user.id
+    user_id = update.callback_query.from_user.id
     data = load_data('bazadannih.json')
 
     if str(user_id) in data['users']:
         current_wishes = data['users'][str(user_id)]['wishes']
-        context.user_data['action'] = 'edit_wishes'
-        update.message.reply_text(f"Текущие пожелания: {current_wishes}\n"
-                                   "Напиши новые пожелания.")
+        update.callback_query.message.reply_text(f"Ваши текущие пожелания: {current_wishes}\n"
+                                                  "Напишите новые пожелания.")
+        context.user_data['action'] = 'edit_wishes'  # Устанавливаем действие на редактирование
     else:
-        update.message.reply_text("Сначала напишите пожелания!")
+        update.callback_query.message.reply_text("Вы еще не написали пожелания. Пожалуйста, сначала напишите их.")
 
 
 # Функция для отображения кнопок действия
