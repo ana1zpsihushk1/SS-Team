@@ -253,7 +253,7 @@ def distribute_callback(update: Update, context: CallbackContext) -> None:
     query.answer()
     distribute(update, context)  # Вызываем функцию распределения подарков
 
-
+#НГ поздравление
 TOKEN1 = '7449709461:AAE1M2zp-Z_E6a_5yetifIzPqCH_E-Lb7tE'
 
 bot = telebot.TeleBot(TOKEN1)
