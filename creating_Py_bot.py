@@ -78,8 +78,8 @@ def team_selection(update: Update, context: CallbackContext) -> None:
         query.message.reply_text("Этот бот поможет тебе поучаствовать в игре Тайный Санта."
                                  "Ты можешь создать свою команду или присоединиться к существующей."
                                  "После этого напиши свои пожелания. А когда вся команда будет в сборе, Главный Санта запустит процесс рандомизации участников.")
-    elif query.data == "leave_feedback":  # Обработка кнопки "Оставить отзыв"
-        leave_feedback_prompt(update, context)
+    elif query.data == "change_wishes":  # Обработка кнопки "Оставить отзыв"
+        new_funk_change_wishes(update, context)
 
 
 # Присоединение к команде
@@ -197,7 +197,7 @@ def write_wishes(update: Update, context: CallbackContext) -> None:
 
 
 # Новая функция для отзыва
-def leave_feedback_prompt(update: Update, context: CallbackContext) -> None:
+def new_funk_change_wishes(update: Update, context: CallbackContext) -> None:
     update.callback_query.message.reply_text("Можешь написать измененное пожелание ")
     context.user_data['action'] = 'change_wishes'
 
@@ -205,7 +205,7 @@ def leave_feedback_prompt(update: Update, context: CallbackContext) -> None:
 # Обработка текста изменения пожеланий 
 def func_change_wishes(update: Update, context: CallbackContext) -> None: 
     user_id = update.message.from_user.id
-    feedback = update.message.text.strip()
+    new_wishes = update.message.text.strip()
     username = update.message.from_user.username
     context.user_data['action'] = None
 
@@ -278,9 +278,9 @@ def main() -> None:
     updater = Updater(token=TOKEN, use_context=True)
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CallbackQueryHandler(team_selection, pattern="^(join_team|create_team|how_it_works|leave_feedback)$"))
+    dispatcher.add_handler(CallbackQueryHandler(team_selection, pattern="^(join_team|create_team|how_it_works|change_wishes)$"))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, write_wishes))
-    # Обработчик для отзыва
+    # Обработчик для редактирования пожеланий
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, func_change_wishes))
     # Специальный обработчик для распределения подарков
     dispatcher.add_handler(CallbackQueryHandler(distribute_callback, pattern='^distribute$'))
